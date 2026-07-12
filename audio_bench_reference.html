@@ -168,6 +168,30 @@ details.theory .eq{font-family:ui-monospace,monospace; background:var(--code-bg)
 a.xref{color:var(--cyan); text-decoration:none; border-bottom:1px dotted var(--cyan)}
 .footer-note{color:var(--dim); font-size:12px; font-family:ui-monospace,monospace; letter-spacing:.05em;
   border-top:1px solid var(--line); padding-top:14px; margin-top:30px}
+
+/* ---------- tabbed layout ---------- */
+section.sec{display:none}
+section.sec.active{display:block}
+nav.side a.active{color:var(--amber); background:var(--amber-soft); border-left-color:var(--amber)}
+nav.side a.active .n{color:var(--amber)}
+.topnav a.active{color:var(--amber); border-color:var(--amber-line); background:var(--amber-soft)}
+
+/* ---------- global search results view ---------- */
+#searchResults{display:none}
+#searchResults.active{display:block}
+.res-group{margin-bottom:30px}
+.res-group .res-head{display:flex; align-items:baseline; gap:14px; border-bottom:2px solid var(--line2); padding-bottom:8px; margin-bottom:12px}
+.res-group .res-head .num{font-family:ui-monospace,monospace; color:var(--amber); font-size:13px; letter-spacing:.16em}
+.res-group .res-head h3{margin:0; font-family:ui-monospace,Menlo,monospace; font-size:16px; letter-spacing:.1em; font-weight:700; text-transform:uppercase}
+.res-item{display:block; width:100%; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  padding:10px 14px; margin:0 0 8px; cursor:pointer; color:var(--ink); font:inherit; box-shadow:var(--shadow)}
+.res-item:hover{border-color:var(--amber-line); box-shadow:0 0 0 1px var(--amber-line), var(--shadow)}
+.res-item b{font-size:14.5px}
+.res-item span{display:block; color:var(--mut); font-size:13px; margin-top:2px}
+.res-empty{color:var(--mut); font-family:ui-monospace,monospace; font-size:13px; padding:8px 2px}
+.card.flash, .g-item.flash{animation:flashHi 1.6s ease}
+@keyframes flashHi{0%{box-shadow:0 0 0 2px var(--amber)} 60%{box-shadow:0 0 0 2px var(--amber)} 100%{box-shadow:var(--shadow)}}
+@media (prefers-reduced-motion: reduce){ .card.flash, .g-item.flash{animation:none; outline:2px solid var(--amber)} }
 </style>
 </head>
 <body>
@@ -200,6 +224,8 @@ a.xref{color:var(--cyan); text-decoration:none; border-bottom:1px dotted var(--c
   <a href="#s9"><span class="n">09</span>My Bench</a>
 </nav>
 <main>
+
+<div id="searchResults"></div>
 
 <!-- ============ SEC 00 BENCH CARD ============ -->
 <section class="sec" id="s0">
@@ -1324,16 +1350,60 @@ themeBtn.addEventListener('click', () => {
   themeBtn.textContent = next === 'dark' ? '☾ DARK' : '☀ LIGHT';
 });
 
-/* ---------- search ---------- */
+/* ---------- tabs ---------- */
 const searchInput = document.getElementById('search');
 const resultBar = document.getElementById('resultBar');
 const resultTxt = document.getElementById('resultTxt');
+const searchResults = document.getElementById('searchResults');
 const items = [...document.querySelectorAll('.card, .g-item')];
 const itemText = items.map(el => el.textContent.toLowerCase());
 const sections = [...document.querySelectorAll('section.sec')];
 const navLinks = [...document.querySelectorAll('nav.side a')];
-let debounce;
+const topLinks = [...document.querySelectorAll('nav.topnav a')];
 
+// per-item display data for the results view
+const itemTitle = items.map(el => {
+  if(el.classList.contains('g-item')) return el.querySelector('b').textContent.trim();
+  const h = el.querySelector('h3');
+  return h ? h.textContent.trim() : el.textContent.replace(/\s+/g,' ').trim().slice(0,40);
+});
+const itemSnippet = items.map(el => {
+  if(el.classList.contains('g-item')) return el.querySelector('span').textContent.trim();
+  const t = el.textContent.replace(/\s+/g,' ').trim();
+  return t.length > 160 ? t.slice(0,160) + '…' : t;
+});
+
+let activeTab = 's0';   // currently visible tab
+let prevTab = 's0';     // tab to restore when search is cleared
+let inSearch = false;   // results view is showing
+
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function validId(id){ return /^s[0-9]$/.test(id) ? id : 's0'; }
+
+/* show a single tab; leaves the search box empty (used for real tab navigation) */
+function showTab(id){
+  id = validId(id);
+  inSearch = false;
+  searchInput.value = '';
+  resultBar.style.display = 'none';
+  searchResults.classList.remove('active');
+  searchResults.innerHTML = '';
+  sections.forEach(s => s.classList.toggle('active', s.id === id));
+  navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  topLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  activeTab = id;
+}
+
+/* hash drives tab state — back button, cross-refs and direct links all route here */
+function onHash(){
+  const id = validId((location.hash || '#s0').slice(1));
+  showTab(id);
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', onHash);
+
+/* ---------- global search ---------- */
+let debounce;
 searchInput.addEventListener('input', () => {
   clearTimeout(debounce);
   debounce = setTimeout(runSearch, 120);
@@ -1342,32 +1412,70 @@ searchInput.addEventListener('input', () => {
 function runSearch(){
   const q = searchInput.value.trim().toLowerCase();
   if(!q){ resetSearch(); return; }
+  if(!inSearch){ prevTab = activeTab; inSearch = true; }
+
   let hits = 0;
+  const groups = new Map();          // section id -> [item indices]
   items.forEach((el, i) => {
-    const hit = itemText[i].includes(q);
-    el.classList.toggle('hidden', !hit);
-    el.classList.toggle('hit', hit);
-    if(hit) hits++;
+    if(itemText[i].includes(q)){
+      hits++;
+      const secId = el.closest('section.sec').id;
+      if(!groups.has(secId)) groups.set(secId, []);
+      groups.get(secId).push(i);
+    }
   });
-  sections.forEach((sec, i) => {
-    const any = sec.querySelector('.card:not(.hidden), .g-item:not(.hidden)');
-    sec.classList.toggle('hidden', !any);
-    if(navLinks[i]) navLinks[i].classList.toggle('dimmed', !any);
+
+  // build the flat results list, grouped under section headings
+  let html = '';
+  sections.forEach(sec => {
+    if(!groups.has(sec.id)) return;
+    const num = sec.querySelector('.sec-head .num').textContent;
+    const title = sec.querySelector('.sec-head h2').textContent;
+    html += '<div class="res-group"><div class="res-head"><span class="num">' +
+      escapeHtml(num) + '</span><h3>' + escapeHtml(title) + '</h3></div>';
+    groups.get(sec.id).forEach(i => {
+      html += '<button class="res-item" data-idx="' + i + '"><b>' +
+        escapeHtml(itemTitle[i]) + '</b><span>' + escapeHtml(itemSnippet[i]) + '</span></button>';
+    });
+    html += '</div>';
   });
+  if(!hits) html = '<p class="res-empty">No matches for "' + escapeHtml(q) + '".</p>';
+  searchResults.innerHTML = html;
+
+  // results view temporarily replaces the tab content
+  sections.forEach(s => s.classList.remove('active'));
+  navLinks.forEach(a => a.classList.remove('active'));
+  topLinks.forEach(a => a.classList.remove('active'));
+  searchResults.classList.add('active');
+  window.scrollTo(0, 0);
+
   resultTxt.innerHTML = '<b>' + hits + '</b> result' + (hits===1?'':'s') + ' for "' + escapeHtml(q) + '"';
   resultBar.style.display = 'block';
-  document.querySelectorAll('details.theory').forEach(d => { if(!d.closest('.hidden')) d.open = true; });
 }
 
+/* clearing the query returns to whatever tab was active before searching */
 function resetSearch(){
-  items.forEach(el => el.classList.remove('hidden','hit'));
-  sections.forEach(s => s.classList.remove('hidden'));
-  navLinks.forEach(a => a.classList.remove('dimmed'));
-  resultBar.style.display = 'none';
-  document.querySelectorAll('details.theory').forEach(d => d.open = false);
+  inSearch = false;
+  showTab(prevTab);
 }
 function clearSearch(){ searchInput.value=''; resetSearch(); searchInput.focus(); }
-function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* jump from a result to its card: switch to that tab, scroll to it, flash it */
+function gotoItem(idx){
+  const el = items[idx];
+  const secId = el.closest('section.sec').id;
+  showTab(secId);
+  if(location.hash !== '#' + secId) history.replaceState(null, '', '#' + secId);
+  requestAnimationFrame(() => {
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1600);
+  });
+}
+searchResults.addEventListener('click', e => {
+  const b = e.target.closest('.res-item');
+  if(b) gotoItem(+b.dataset.idx);
+});
 
 document.addEventListener('keydown', e => {
   if(e.key === '/' && document.activeElement !== searchInput && !/input|select|textarea/i.test(document.activeElement.tagName)){
@@ -1375,6 +1483,9 @@ document.addEventListener('keydown', e => {
   }
   if(e.key === 'Escape' && document.activeElement === searchInput){ clearSearch(); }
 });
+
+/* initial tab from the URL hash (defaults to SEC 00 Bench Card) */
+onHash();
 
 /* ---------- helpers ---------- */
 function parseVal(s, defMult){ // parse "4.7k", "2M", "330", "100n", "4.7u", "220p"
