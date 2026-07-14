@@ -206,6 +206,22 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 .g-detail > div p{margin:6px 0}
 .g-detail > div .eq{font-family:ui-monospace,monospace; background:var(--code-bg); border:1px solid var(--line);
   border-radius:6px; padding:6px 10px; margin:7px 0; font-size:12.5px; overflow-x:auto}
+
+/* ---------- calculator "what this does" explainer ---------- */
+.calc-info{margin:0 0 12px}
+.calc-info summary{cursor:pointer; list-style:none; user-select:none; display:inline-flex; align-items:center; gap:7px;
+  background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber-line); border-radius:6px;
+  padding:5px 12px; font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.07em; text-transform:uppercase}
+.calc-info summary:hover{border-color:var(--amber)}
+.calc-info summary::-webkit-details-marker{display:none}
+.calc-info summary::before{content:"\25b8"; font-size:9px}
+.calc-info[open] summary::before{content:"\25be"}
+.calc-info > div{font-size:13px; color:var(--ink); line-height:1.55; padding:9px 2px 2px}
+.calc-info > div p{margin:7px 0}
+.calc-info > div p:first-child{margin-top:0}
+.calc-info .eq{font-family:ui-monospace,monospace; background:var(--code-bg); border:1px solid var(--amber-line);
+  border-radius:6px; padding:6px 10px; margin:8px 0; font-size:13px; color:var(--amber); display:inline-block}
+.calc-info b{color:var(--amber)}
 </style>
 </head>
 <body>
@@ -1129,6 +1145,11 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 
   <div class="calc card" id="calcRes">
     <h3>Resistor color code</h3>
+    <details class="calc-info"><summary>What this does</summary><div>
+      <p><b>What it does:</b> decodes the colored bands printed on a through-hole resistor into its resistance and tolerance. Pick each band's color for a 4-band part (two digits + multiplier + tolerance) or a 5-band part (three digits + multiplier + tolerance) and it reads out the value.</p>
+      <p><b>What it's used for:</b> vintage boards are covered in resistors whose <i>only</i> marking is those bands. When the schematic is missing, a value is illegible, or you just want to identify a part in place, you read the colors here rather than pulling out a chart. The 5-band mode covers the tighter-tolerance precision resistors (an extra significant figure) common in audio gain-setting and filter networks. Also handy in reverse — confirm a replacement is the right value before you solder it in.</p>
+      <p><b>Bench tip:</b> heat-darkened or faded bands are a classic trap (brown reads as red, red as orange). If a resistor looks cooked or a reading seems off, lift one leg and measure it with a meter out of circuit — parallel paths on the board otherwise fool an in-circuit reading. See the decoder in <a class="xref" href="#s3">SEC 03</a>.</p>
+    </div></details>
     <div class="seg">
       <button id="b4" class="on" onclick="setBands(4)">4-BAND</button>
       <button id="b5" onclick="setBands(5)">5-BAND</button>
@@ -1156,6 +1177,12 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 
   <div class="calc card" id="calcOhm">
     <h3>Ohm's law</h3>
+    <details class="calc-info"><summary>What this does</summary><div>
+      <p><b>What it does:</b> solves the fundamental relationship between voltage, current, and resistance. Enter any two and it computes the third.</p>
+      <p class="eq">V = I &times; R</p>
+      <p><b>What it's used for:</b> this is the single most-used equation at the bench. Work out the current flowing through a rail or a resistor, size a dropping or bleeder resistor for a target voltage, or infer a resistance from a measured voltage drop across a known part. It's also the sanity check behind almost every other reading — if the measured voltage, the current, and the resistor value don't agree, one of your assumptions (or one of the parts) is wrong.</p>
+      <p><b>Watch the power:</b> Ohm's law tells you the current, and current into a resistor means heat — <b>P = V &times; I</b>. A resistor pulling far more current than expected may be over its wattage rating, which is why some run hot, discolor, or drift. Pair the two whenever a resistor looks cooked. Divider and <a class="term" data-term="g-bias-electronic">bias</a> voltages are just Ohm's law applied twice.</p>
+    </div></details>
     <p style="color:var(--mut);font-size:13px;margin:0 0 4px">Fill any two, leave the third blank.</p>
     <div class="row">
       <div><label>Voltage (V)</label><input type="text" id="ohmV" inputmode="decimal"></div>
@@ -1168,6 +1195,11 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 
   <div class="calc card" id="calcCap">
     <h3>Capacitor code</h3>
+    <details class="calc-info"><summary>What this does</summary><div>
+      <p><b>What it does:</b> converts the shorthand printed on a small capacitor into the real value, shown three ways — picofarads, nanofarads, and microfarads — plus the tolerance from its letter code. It reads both the 3-digit EIA code (<code>104</code>) and the letter-as-decimal-point style (<code>4n7</code>, <code>2u2</code>).</p>
+      <p><b>What it's used for:</b> ceramic and film caps almost never print a plain value — they use two significant digits followed by a "number of zeros" multiplier, in picofarads. <code>104</code> means 10 followed by 4 zeros = 100,000&nbsp;pF = 100&nbsp;nF = 0.1&nbsp;µF. On a densely packed board, or when matching a replacement, this removes the decimal-point guesswork that leads to ordering a part 1000&times; off. The tolerance letter (J&nbsp;=&nbsp;±5%, K&nbsp;=&nbsp;±10%, and so on) matters for timing and filter caps where value accuracy counts.</p>
+      <p><b>Bench note:</b> electrolytics usually print their value and voltage directly, so this is mostly for the little ceramics and films — <a class="term" data-term="g-coupling-cap">coupling caps</a>, bypass caps, and filter/timing parts. Always match or exceed the original voltage rating on the replacement. Cap types are covered in <a class="xref" href="#s2">SEC 02</a>.</p>
+    </div></details>
     <label>Code on part (e.g. 104, 473, 4n7, 2u2)</label>
     <input type="text" id="capCode" placeholder="104">
     <label>Tolerance letter (optional)</label>
@@ -1181,6 +1213,12 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 
   <div class="calc card" id="calcDiv">
     <h3>Voltage divider</h3>
+    <details class="calc-info"><summary>What this does</summary><div>
+      <p><b>What it does:</b> given an input voltage and two resistors in series — R1 on top, R2 to ground — it computes the voltage at their junction.</p>
+      <p class="eq">Vout = Vin &times; R2 / (R1 + R2)</p>
+      <p><b>What it's used for:</b> dividers are everywhere in analog gear. They set the DC <a class="term" data-term="g-bias-electronic">bias</a> point of a stage, generate reference voltages, and scale a signal down in feedback networks — and a volume pot is nothing but a divider you can turn. Use this to predict the voltage you <i>should</i> measure at a node so you can spot a drifted resistor, to design a reference or bias network, or to reverse-check a reading that looks suspicious.</p>
+      <p><b>The catch:</b> the formula assumes nothing meaningful loads the output. If the next stage's input <a class="term" data-term="g-impedance">impedance</a> is comparable to R2, it sits in parallel with R2 and pulls Vout below the ideal figure — which is exactly why a divider feeding a low-impedance load "sags." When your measured voltage is lower than this calculator predicts, suspect loading before you suspect a bad part. See dividers in context in <a class="xref" href="#s1">SEC 01</a>.</p>
+    </div></details>
     <div class="row">
       <div><label>Vin (V)</label><input type="text" id="dvV" inputmode="decimal"></div>
       <div><label>R1 (top)</label><input type="text" id="dvR1" placeholder="10k"></div>
@@ -1191,6 +1229,12 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 
   <div class="calc card" id="calcRC">
     <h3>RC filter cutoff</h3>
+    <details class="calc-info"><summary>What this does</summary><div>
+      <p><b>What it does:</b> computes the corner (−3&nbsp;dB) frequency of a single resistor-capacitor filter — the frequency where the signal is down 3&nbsp;dB and shifted 45° in phase, and beyond which the response rolls off at 6&nbsp;dB per octave.</p>
+      <p class="eq">fc = 1 / (2&pi;RC)</p>
+      <p><b>What it's used for:</b> RC pairs form filters all over audio gear, often without anyone drawing a "filter" on the schematic. A series <a class="term" data-term="g-coupling-cap">coupling cap</a> feeding a stage's input <a class="term" data-term="g-impedance">impedance</a> makes a <b>high-pass</b> — that's what sets how low the bass extends. A series resistor into a cap to ground makes a <b>low-pass</b> — used to tame highs, roll off hiss, or filter RF and hum. Use this to find where a stage's bass rolls off, to place a tone-control or de-emphasis corner, or to design a hum/RF filter.</p>
+      <p><b>Bench link:</b> when a channel sounds thin or bass-shy, a dried-out or undersized coupling cap has <i>raised</i> its high-pass corner up into the audible range — plug the cap value and the load impedance in here and you'll see the frequency the bottom end is now falling off at. See RC theory in <a class="xref" href="#s1">SEC 01</a>.</p>
+    </div></details>
     <p style="color:var(--mut);font-size:13px;margin:0 0 4px">fc = 1 / (2πRC) — <a class="term" data-term="g-coupling-cap">coupling caps</a> + input <a class="term" data-term="g-impedance">impedance</a> form exactly this.</p>
     <div class="row">
       <div><label>R (Ω, k, M)</label><input type="text" id="rcR" placeholder="10k"></div>
@@ -1201,6 +1245,12 @@ a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
 
   <div class="calc card" id="calcDb">
     <h3>Decibels ↔ voltage</h3>
+    <details class="calc-info"><summary>What this does</summary><div>
+      <p><b>What it does:</b> converts between a voltage ratio and decibels, in either direction, and lists the standard reference levels the audio world uses.</p>
+      <p class="eq">dB = 20 &times; log&#8321;&#8320;(V1 / V2)</p>
+      <p><b>What it's used for:</b> gain, loss, and level in audio are almost always spoken in dB rather than raw volts. Use this to turn a stage's gain figure into the actual voltage multiplication it applies, to work out how much a <a class="term" data-term="g-attenuator">pad</a> knocks a signal down, or to read how far off a level is when two measurements don't match. (Note the factor of <b>20</b>: it's used for voltage ratios; power ratios use 10. Every 6&nbsp;dB is roughly a doubling of voltage.)</p>
+      <p><b>The reference table</b> is the everyday lookup: <b>+4&nbsp;dBu</b> is the pro/studio operating level (1.228&nbsp;V), <b>−10&nbsp;dBV</b> is consumer/hi-fi (0.316&nbsp;V). That ~12&nbsp;dB gap is the classic culprit when a consumer source feeding a pro input sounds weak, or a pro output into a consumer device distorts — you're not chasing a fault, just a level-standard mismatch. See signal levels in <a class="xref" href="#s6">SEC 06</a>.</p>
+    </div></details>
     <div class="row">
       <div><label>Voltage ratio (V1/V2)</label><input type="text" id="dbRatio" inputmode="decimal"></div>
       <div><label>or dB</label><input type="text" id="dbVal" inputmode="decimal"></div>
