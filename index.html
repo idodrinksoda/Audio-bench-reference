@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Bench Reference — REF-01</title>
+<style>
+:root, html[data-theme="dark"]{
+  --bg:#111417; --panel:#181d22; --panel2:#1e242b; --line:#2a323b; --line2:#39434e;
+  --ink:#e7e3d8; --mut:#98a0a9; --dim:#6d757e;
+  --amber:#e8a33d; --amber-soft:rgba(232,163,61,.14); --amber-line:rgba(232,163,61,.45);
+  --cyan:#63b8cc; --cyan-soft:rgba(99,184,204,.12);
+  --red:#d3685c; --red-soft:rgba(211,104,92,.12);
+  --green:#84b06d; --green-soft:rgba(132,176,109,.12);
+  --code-bg:#0d1013; --shadow:0 2px 10px rgba(0,0,0,.35);
+}
+html[data-theme="light"]{
+  --bg:#f2eee4; --panel:#fbf9f2; --panel2:#f3f0e6; --line:#d9d2c0; --line2:#c4bca6;
+  --ink:#26241d; --mut:#6b6557; --dim:#948d7c;
+  --amber:#a86e12; --amber-soft:rgba(168,110,18,.12); --amber-line:rgba(168,110,18,.5);
+  --cyan:#20707f; --cyan-soft:rgba(32,112,127,.1);
+  --red:#a83c2e; --red-soft:rgba(168,60,46,.09);
+  --green:#4a7a37; --green-soft:rgba(74,122,55,.1);
+  --code-bg:#eae5d6; --shadow:0 1px 4px rgba(60,50,20,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+code, .mono, kbd{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+code{background:var(--code-bg); border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:.86em; white-space:nowrap}
+kbd{background:var(--panel2); border:1px solid var(--line2); border-bottom-width:2px; border-radius:4px; padding:0 6px; font-size:.8em}
+
+/* ---------- faceplate header ---------- */
+header.face{
+  position:sticky; top:0; z-index:50; background:var(--panel);
+  border-bottom:1px solid var(--line2); box-shadow:var(--shadow);
+  padding:10px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:10px; white-space:nowrap}
+.pwr{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.brand h1{margin:0; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:15px; letter-spacing:.14em; font-weight:600}
+.brand .model{color:var(--mut); font-family:ui-monospace,Menlo,monospace; font-size:11px; letter-spacing:.12em; border:1px solid var(--line2); border-radius:4px; padding:2px 7px}
+.searchbox{flex:1; min-width:220px; display:flex; align-items:center; gap:8px;
+  background:var(--code-bg); border:1px solid var(--line2); border-radius:8px; padding:7px 12px}
+.searchbox:focus-within{border-color:var(--amber-line); box-shadow:0 0 0 2px var(--amber-soft)}
+.searchbox svg{flex:none; opacity:.6}
+.searchbox input{flex:1; background:none; border:none; outline:none; color:var(--ink);
+  font-family:ui-monospace,Menlo,monospace; font-size:14px}
+.searchbox .hint{color:var(--dim); font-size:11px; font-family:ui-monospace,monospace; border:1px solid var(--line); border-radius:4px; padding:1px 6px}
+#themeBtn{background:var(--panel2); color:var(--ink); border:1px solid var(--line2); border-radius:8px;
+  padding:7px 13px; cursor:pointer; font-family:ui-monospace,monospace; font-size:12px; letter-spacing:.06em}
+#themeBtn:hover{border-color:var(--amber-line)}
+#resultBar{display:none; padding:8px 16px; background:var(--amber-soft); border-bottom:1px solid var(--amber-line);
+  font-family:ui-monospace,monospace; font-size:12.5px; letter-spacing:.03em}
+#resultBar b{color:var(--amber)}
+#resultBar button{float:right; background:none; border:1px solid var(--line2); border-radius:4px; color:var(--ink); cursor:pointer; font-size:11px; padding:1px 8px}
+
+/* ---------- layout ---------- */
+.wrap{display:grid; grid-template-columns:216px minmax(0,1fr); max-width:1500px; margin:0 auto}
+nav.side{position:sticky; top:66px; align-self:start; height:calc(100vh - 66px); overflow-y:auto; padding:18px 8px 40px 14px}
+nav.side a{display:block; color:var(--mut); text-decoration:none; font-family:ui-monospace,Menlo,monospace;
+  font-size:12.5px; letter-spacing:.04em; padding:6px 10px; border-left:2px solid transparent; border-radius:0 5px 5px 0}
+nav.side a .n{color:var(--dim); margin-right:7px}
+nav.side a:hover{color:var(--ink); background:var(--panel)}
+nav.side a.dimmed{opacity:.32}
+main{padding:22px 26px 90px; min-width:0}
+
+section.sec{margin-bottom:46px}
+.sec-head{display:flex; align-items:baseline; gap:14px; border-bottom:2px solid var(--line2); padding-bottom:8px; margin-bottom:6px}
+.sec-head .num{font-family:ui-monospace,monospace; color:var(--amber); font-size:13px; letter-spacing:.16em}
+.sec-head h2{margin:0; font-family:ui-monospace,Menlo,monospace; font-size:19px; letter-spacing:.12em; font-weight:700; text-transform:uppercase}
+.sec-sub{color:var(--mut); font-size:13.5px; margin:0 0 16px}
+
+.cards{columns:340px; column-gap:16px}
+.cards.wide{columns:460px}
+.card{break-inside:avoid; background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px 15px; margin:0 0 16px; box-shadow:var(--shadow)}
+.card h3{margin:0 0 8px; font-size:15px; font-weight:650; letter-spacing:.01em}
+.card h4{margin:12px 0 4px; font-size:12px; font-family:ui-monospace,monospace; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--cyan)}
+.card p{margin:6px 0}
+.card ul, .card ol{margin:6px 0; padding-left:20px}
+.card li{margin:3px 0}
+.card.hit{border-color:var(--amber-line); box-shadow:0 0 0 1px var(--amber-line), var(--shadow)}
+.hidden{display:none !important}
+
+.tag{display:inline-block; font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.12em;
+  text-transform:uppercase; border-radius:4px; padding:2px 7px; margin:0 6px 8px 0; border:1px solid}
+.tag.bench{color:var(--amber); border-color:var(--amber-line); background:var(--amber-soft)}
+.tag.warnt{color:var(--red); border-color:var(--red); background:var(--red-soft)}
+.tag.meas{color:var(--cyan); border-color:var(--cyan); background:var(--cyan-soft)}
+.tag.ok{color:var(--green); border-color:var(--green); background:var(--green-soft)}
+
+.card.warn{border-color:var(--red); background:linear-gradient(var(--red-soft),var(--red-soft)),var(--panel)}
+.card.bench-card{border-color:var(--amber-line)}
+
+table{border-collapse:collapse; width:100%; margin:8px 0; font-size:13.5px}
+th{font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--mut); text-align:left; padding:5px 8px; border-bottom:1px solid var(--line2)}
+td{padding:5px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+tr:last-child td{border-bottom:none}
+td:first-child{white-space:nowrap}
+.kv td:first-child{color:var(--mut); font-family:ui-monospace,monospace; font-size:12.5px}
+
+details.theory{margin:12px 0 4px; border:1px solid var(--line); border-left:3px solid var(--cyan);
+  border-radius:6px; background:var(--panel2)}
+details.theory summary{cursor:pointer; padding:8px 12px; font-family:ui-monospace,monospace;
+  font-size:12px; letter-spacing:.08em; color:var(--cyan); list-style:none; user-select:none}
+details.theory summary::before{content:"▸ DEEP DIVE — "; }
+details.theory[open] summary::before{content:"▾ DEEP DIVE — "}
+details.theory > div{padding:2px 14px 12px; font-size:14px}
+details.theory .eq{font-family:ui-monospace,monospace; background:var(--code-bg); border:1px solid var(--line);
+  border-radius:6px; padding:8px 12px; margin:8px 0; font-size:13.5px; overflow-x:auto}
+
+.sym{display:flex; align-items:center; gap:12px; padding:7px 0; border-bottom:1px solid var(--line)}
+.sym:last-child{border-bottom:none}
+.sym svg{flex:none; stroke:var(--ink); fill:none; stroke-width:1.6}
+.sym .nm{font-size:13.5px}
+.sym .nm b{display:block; font-size:13px}
+.sym .nm span{color:var(--mut); font-size:12.5px}
+
+/* ---------- calculators ---------- */
+.calc{background:var(--panel); border:1px solid var(--line2); border-radius:10px; padding:16px 18px; margin:0 0 16px; break-inside:avoid}
+.calc h3{margin:0 0 10px; font-family:ui-monospace,monospace; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--amber)}
+.calc label{display:block; font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--mut); margin:8px 0 3px}
+.calc input[type=text], .calc input[type=number], .calc select{
+  width:100%; background:var(--code-bg); color:var(--ink); border:1px solid var(--line2); border-radius:6px;
+  padding:7px 10px; font-family:ui-monospace,monospace; font-size:14px; outline:none}
+.calc input:focus, .calc select:focus{border-color:var(--amber-line)}
+.calc .row{display:flex; gap:10px}
+.calc .row > div{flex:1; min-width:0}
+.calc .out{margin-top:12px; background:var(--code-bg); border:1px solid var(--amber-line); border-radius:8px;
+  padding:10px 14px; font-family:ui-monospace,monospace; font-size:16px; min-height:20px}
+.calc .out small{display:block; color:var(--mut); font-size:12px; margin-top:3px}
+.calc .btns{margin-top:10px; display:flex; gap:8px}
+.calc button{background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber-line);
+  border-radius:6px; padding:6px 14px; cursor:pointer; font-family:ui-monospace,monospace; font-size:12px; letter-spacing:.06em}
+.calc button.ghost{background:none; color:var(--mut); border-color:var(--line2)}
+.calc .seg{display:flex; border:1px solid var(--line2); border-radius:6px; overflow:hidden; margin-bottom:6px}
+.calc .seg button{flex:1; border:none; border-radius:0; background:var(--panel2); color:var(--mut)}
+.calc .seg button.on{background:var(--amber-soft); color:var(--amber)}
+#resSvg{width:100%; max-width:300px; display:block; margin:10px auto 4px}
+
+/* ---------- glossary ---------- */
+.gloss{columns:320px; column-gap:22px}
+.g-item{break-inside:avoid; padding:7px 0; border-bottom:1px solid var(--line)}
+.g-item b{font-family:ui-monospace,monospace; font-size:13px; letter-spacing:.02em}
+.g-item span{display:block; color:var(--mut); font-size:13px; margin-top:1px}
+.g-item.hit b{color:var(--amber)}
+
+.topnav{display:none}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav.side{display:none}
+  .topnav{display:flex; gap:8px; overflow-x:auto; padding:10px 14px; position:sticky; top:0; z-index:40;
+    background:var(--bg); border-bottom:1px solid var(--line); -webkit-overflow-scrolling:touch}
+  header.face{position:static}
+  .topnav a{flex:none; color:var(--mut); text-decoration:none; font-family:ui-monospace,monospace; font-size:12px;
+    border:1px solid var(--line2); border-radius:16px; padding:5px 12px; background:var(--panel)}
+  main{padding:16px 14px 80px}
+}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+a.xref{color:var(--cyan); text-decoration:none; border-bottom:1px dotted var(--cyan)}
+.footer-note{color:var(--dim); font-size:12px; font-family:ui-monospace,monospace; letter-spacing:.05em;
+  border-top:1px solid var(--line); padding-top:14px; margin-top:30px}
+
+/* ---------- tabbed layout ---------- */
+section.sec{display:none}
+section.sec.active{display:block}
+nav.side a.active{color:var(--amber); background:var(--amber-soft); border-left-color:var(--amber)}
+nav.side a.active .n{color:var(--amber)}
+.topnav a.active{color:var(--amber); border-color:var(--amber-line); background:var(--amber-soft)}
+
+/* ---------- global search results view ---------- */
+#searchResults{display:none}
+#searchResults.active{display:block}
+.res-group{margin-bottom:30px}
+.res-group .res-head{display:flex; align-items:baseline; gap:14px; border-bottom:2px solid var(--line2); padding-bottom:8px; margin-bottom:12px}
+.res-group .res-head .num{font-family:ui-monospace,monospace; color:var(--amber); font-size:13px; letter-spacing:.16em}
+.res-group .res-head h3{margin:0; font-family:ui-monospace,Menlo,monospace; font-size:16px; letter-spacing:.1em; font-weight:700; text-transform:uppercase}
+.res-item{display:block; width:100%; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  padding:10px 14px; margin:0 0 8px; cursor:pointer; color:var(--ink); font:inherit; box-shadow:var(--shadow)}
+.res-item:hover{border-color:var(--amber-line); box-shadow:0 0 0 1px var(--amber-line), var(--shadow)}
+.res-item b{font-size:14.5px}
+.res-item span{display:block; color:var(--mut); font-size:13px; margin-top:2px}
+.res-empty{color:var(--mut); font-family:ui-monospace,monospace; font-size:13px; padding:8px 2px}
+.card.flash, .g-item.flash{animation:flashHi 1.6s ease}
+@keyframes flashHi{0%{box-shadow:0 0 0 2px var(--amber)} 60%{box-shadow:0 0 0 2px var(--amber)} 100%{box-shadow:var(--shadow)}}
+@media (prefers-reduced-motion: reduce){ .card.flash, .g-item.flash{animation:none; outline:2px solid var(--amber)} }
+
+/* ---------- define-term links + expandable glossary ---------- */
+a.term{color:var(--amber); cursor:pointer; text-decoration:none; border-bottom:1px dotted var(--amber-line)}
+a.term:hover, a.term:focus{border-bottom-style:solid; outline:none}
+.g-detail{margin-top:6px; border-top:1px dashed var(--line2)}
+.g-detail summary{cursor:pointer; list-style:none; user-select:none; padding:5px 0 2px;
+  font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--amber)}
+.g-detail summary::-webkit-details-marker{display:none}
+.g-detail summary::before{content:"\25b8 "}
+.g-detail[open] summary::before{content:"\25be "}
+.g-detail > div{font-size:13px; color:var(--ink); padding:2px 0 6px}
+.g-detail > div p{margin:6px 0}
+.g-detail > div .eq{font-family:ui-monospace,monospace; background:var(--code-bg); border:1px solid var(--line);
+  border-radius:6px; padding:6px 10px; margin:7px 0; font-size:12.5px; overflow-x:auto}
+</style>
+</head>
+<body>
+<header class="face">
+  <div class="brand"><span class="pwr"></span><h1>AUDIO BENCH REFERENCE</h1><span class="model">REF-01</span></div>
+  <div class="searchbox">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search" type="text" placeholder="Search everything — component, symptom, term, value…" autocomplete="off">
+    <span class="hint">/</span>
+  </div>
+  <button id="themeBtn" title="Toggle theme">☾ DARK</button>
+</header>
+<div id="resultBar"><span id="resultTxt"></span><button onclick="clearSearch()">CLEAR ✕</button></div>
+
+<nav class="topnav">
+  <a href="#s0">Bench Card</a><a href="#s1">Fundamentals</a><a href="#s2">Components</a><a href="#s3">Codes</a><a href="#s4">Diagnostics</a><a href="#s5">Techniques</a><a href="#s6">Audio</a><a href="#s7">Calculators</a><a href="#s8">Glossary</a><a href="#s9">My Bench</a>
+</nav>
+
+<div class="wrap">
+<nav class="side">
+  <a href="#s0"><span class="n">00</span>Bench Card</a>
+  <a href="#s1"><span class="n">01</span>Fundamentals</a>
+  <a href="#s2"><span class="n">02</span>Components</a>
+  <a href="#s3"><span class="n">03</span>Codes &amp; Markings</a>
+  <a href="#s4"><span class="n">04</span>Diagnostics</a>
+  <a href="#s5"><span class="n">05</span>Techniques</a>
+  <a href="#s6"><span class="n">06</span>Audio Deep Dives</a>
+  <a href="#s7"><span class="n">07</span>Calculators</a>
+  <a href="#s8"><span class="n">08</span>Glossary</a>
+  <a href="#s9"><span class="n">09</span>My Bench</a>
+</nav>
+<main>
+
+<div id="searchResults"></div>
+
+<!-- ============ SEC 00 BENCH CARD ============ -->
+<section class="sec" id="s0">
+  <div class="sec-head"><span class="num">SEC 00</span><h2>Bench Card</h2></div>
+  <p class="sec-sub">The stuff you check before touching anything. Pin this mentally.</p>
+  <div class="cards">
+
+  <div class="card warn">
+    <span class="tag warnt">Safety</span>
+    <h3>Non-negotiables</h3>
+    <ul>
+      <li><b>Unplug before opening.</b> Switch off ≠ safe — primary side is live to the switch.</li>
+      <li><b>Discharge filter caps</b> before working near the power supply. Use a resistor (2–10&nbsp;kΩ, several watts) across the terminals for a few seconds, then verify &lt;1&nbsp;V with the meter. Never short with a screwdriver — it pits terminals and can damage the cap.</li>
+      <li><b>One-hand rule</b> when probing live equipment: keep the other hand off the chassis so current can't cross your chest.</li>
+      <li><b>No tube gear</b> with the homebrew signal tracer — plate voltages of 100–400&nbsp;V will destroy it and can reach you through it.</li>
+      <li><b>Mains-side work is not routine.</b> If a fault points into the primary side (mains switch, transformer primary, fuse holder), slow down, work unplugged, and verify with resistance checks, not live probing.</li>
+    </ul>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">My bench</span>
+    <h3>Signal tracer limits</h3>
+    <table class="kv">
+      <tr><td>Max signal</td><td><b>50 V</b> at the probe tip — solid-state line-level and low-voltage circuits only</td></tr>
+      <tr><td>Tube gear</td><td><b>Never.</b></td></tr>
+      <tr><td>Ground clip</td><td>Attach to chassis/signal ground with the unit <b>powered off</b>, then power up</td></tr>
+      <tr><td>Input cap</td><td>10 µF bipolar blocks DC bias at the tip — you hear the AC signal only</td></tr>
+      <tr><td>Gain</td><td>×20 (LM386), volume on module trim <a class="term" data-term="g-pot">pot</a></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">Reference</span>
+    <h3>Voltages you'll meet</h3>
+    <table>
+      <tr><th>Where</th><th>Typical</th></tr>
+      <tr><td>Logic / µC</td><td>5 V or 3.3 V DC</td></tr>
+      <tr><td>Op-amp <a class="term" data-term="g-rail">rails</a> (dual)</td><td>±12 V to ±18 V DC</td></tr>
+      <tr><td>Single-supply audio</td><td>9–24 V, signal biased at ½ Vcc</td></tr>
+      <tr><td>Cassette motors</td><td>6–12 V DC (often regulated on-motor)</td></tr>
+      <tr><td>Phantom power</td><td>+48 V DC on mic XLR</td></tr>
+      <tr><td>Power amp rails</td><td>±20 V to ±70 V DC — treat with respect</td></tr>
+      <tr><td>Mains (primary)</td><td>120 / 230 V AC — lethal</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">Reference</span>
+    <h3>Signal levels</h3>
+    <table>
+      <tr><th>Source</th><th>Level</th></tr>
+      <tr><td>Phono (MM cartridge)</td><td>~2–5 mV</td></tr>
+      <tr><td>Microphone</td><td>~1–10 mV (−60 to −40 dBu)</td></tr>
+      <tr><td>Consumer line (−10 dBV)</td><td>0.316 V</td></tr>
+      <tr><td>Pro line (+4 dBu)</td><td>1.228 V</td></tr>
+      <tr><td>Tape head playback</td><td>~0.5–1 mV — needs ~60 dB of gain + EQ</td></tr>
+      <tr><td>Speaker out</td><td>volts to tens of volts</td></tr>
+    </table>
+    <p>Feeding the wrong level into a stage is a classic self-inflicted "fault": line into a mic input <a class="term" data-term="g-clipping">clips</a>; mic into a line input is nearly silent.</p>
+  </div>
+
+  <div class="card">
+    <h3>Before you open it</h3>
+    <ol>
+      <li>Reproduce and <b>write down the exact symptom</b> — which channel, which function, intermittent or constant, affected by controls?</li>
+      <li>Wiggle test: cables, jacks, switches. Half of "dead channel" complaints are a jack or dirty control.</li>
+      <li>Check the obvious: fuse, source selected, monitor/tape switches, <a class="term" data-term="g-insert-point">insert jacks</a> (they interrupt the path).</li>
+      <li>Photograph everything before disassembly — connectors, screw locations, belt routing.</li>
+      <li>Get the service manual first (Hifi Engine, Elektrotanya). No procedural work from memory.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">Meter</span>
+    <h3>Multimeter quick settings</h3>
+    <table>
+      <tr><th>Task</th><th>Mode</th></tr>
+      <tr><td>Supply rails</td><td>DC V, probes across rail → ground</td></tr>
+      <tr><td>Is this trace connected?</td><td>Continuity (beep), <b>power off</b></td></tr>
+      <tr><td>Diode / transistor junction</td><td>Diode test, power off, one lead lifted if in-circuit reading is odd</td></tr>
+      <tr><td>Resistor value</td><td>Ω, power off — in-circuit reads <b>equal or lower</b> than marked, never higher</td></tr>
+      <tr><td>Cap "is it roughly there"</td><td>Capacitance mode, cap removed &amp; discharged. Does not measure ESR.</td></tr>
+      <tr><td>Ripple on a rail</td><td>AC V across the rail (rough check; a scope is better)</td></tr>
+    </table>
+  </div>
+
+  </div>
+</section>
+
+<!-- ============ SEC 01 FUNDAMENTALS ============ -->
+<section class="sec" id="s1">
+  <div class="sec-head"><span class="num">SEC 01</span><h2>Fundamentals</h2></div>
+  <p class="sec-sub">The working model. Quick cards up top, theory folded underneath.</p>
+  <div class="cards">
+
+  <div class="card">
+    <h3>Voltage, current, resistance</h3>
+    <p><b>Voltage (V)</b> is electrical pressure — the <i>difference</i> between two points. It's always measured between two places, which is why the black probe has to go somewhere (usually ground).</p>
+    <p><b>Current (I, amps)</b> is flow — how much charge moves per second. It only flows in a complete loop.</p>
+    <p><b>Resistance (R, ohms)</b> opposes flow and converts electrical energy to heat.</p>
+    <p>Water analogy: voltage = pressure, current = flow rate, resistance = pipe narrowness. It breaks down eventually, but it's right often enough to be useful.</p>
+    <details class="theory"><summary>Ohm's law &amp; power</summary><div>
+      <div class="eq">V = I × R &nbsp;&nbsp;|&nbsp;&nbsp; I = V / R &nbsp;&nbsp;|&nbsp;&nbsp; R = V / I</div>
+      <div class="eq">P = V × I = I²R = V²/R &nbsp; (watts)</div>
+      <p>P = I²R is why a resistor passing too much current burns: double the current, four times the heat. When you find a scorched resistor, the resistor is usually the <i>victim</i> — something downstream is pulling too much current. Find out why before replacing it.</p>
+    </div></details>
+  </div>
+
+  <div class="card">
+    <h3>AC vs DC</h3>
+    <p><b>DC</b> holds a constant polarity — batteries, power <a class="term" data-term="g-rail">rails</a>. <b>AC</b> alternates — mains power, and crucially, <b>audio is AC</b>: a small alternating voltage riding through the circuit at 20&nbsp;Hz–20&nbsp;kHz.</p>
+    <p>Most audio circuits are AC signals riding on DC bias. Your meter's DC mode sees the bias; AC mode sees (roughly) the signal. The tracer's input cap strips the DC so you hear only the signal.</p>
+    <details class="theory"><summary>RMS, peak, and what your meter reads</summary><div>
+      <p>A sine wave's <b><a class="term" data-term="g-rms">RMS</a></b> value is peak ÷ √2 ≈ 0.707 × peak. RMS is the "DC-equivalent" heating value, and it's what audio levels are quoted in. 230&nbsp;V mains is RMS; its peaks hit ±325&nbsp;V.</p>
+      <p>Budget meters are <b>average-responding</b>, calibrated to read correctly for sine waves only. On music or distorted signals the AC reading is approximate — fine for "is there signal here," not for measurement-grade work.</p>
+    </div></details>
+  </div>
+
+  <div class="card">
+    <h3>Ground</h3>
+    <p>"Ground" is just the agreed 0&nbsp;V reference everything is measured against. In audio gear you'll meet several:</p>
+    <ul>
+      <li><b>Signal ground</b> — the audio reference, what the tracer clip and your meter's black probe want.</li>
+      <li><b>Chassis ground</b> — the metal case, usually tied to signal ground at one point.</li>
+      <li><b>Earth/safety ground</b> — the third mains pin, protects you if the chassis goes live.</li>
+    </ul>
+    <p>When measurements look insane, check your ground point first. A bad clip connection produces very convincing fake faults.</p>
+  </div>
+
+  <div class="card">
+    <h3>Series &amp; parallel</h3>
+    <p><b>Series:</b> same current through everything; voltages add; resistances add.</p>
+    <p><b>Parallel:</b> same voltage across everything; currents add; resistance drops.</p>
+    <div class="eq" style="font-family:ui-monospace,monospace;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:13.5px">R_series = R1 + R2<br>R_parallel = (R1×R2)/(R1+R2)</div>
+    <p>Two equal resistors in parallel = half the value. A parallel path is why in-circuit resistance readings come out <i>low</i> — the meter sees everything else connected across the part.</p>
+  </div>
+
+  <div class="card">
+    <h3>The voltage divider</h3>
+    <p>Two resistors in series across a voltage make a smaller voltage at their junction. This is <b>the</b> most common structure in electronics — volume <a class="term" data-term="g-pot">pots</a>, bias networks, <a class="term" data-term="g-attenuator">attenuator</a> pads, <a class="term" data-term="g-feedback">feedback</a> networks are all dividers.</p>
+    <div class="eq" style="font-family:ui-monospace,monospace;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:13.5px">Vout = Vin × R2 / (R1 + R2)</div>
+    <p>A volume pot is a divider whose ratio you turn. Recognize dividers on a schematic and half the bias voltages explain themselves. Calculator in <a class="xref" href="#s7">SEC 07</a>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Impedance</h3>
+    <p>Resistance for AC. Capacitors and inductors resist AC in a frequency-dependent way, so a circuit's total opposition to an audio signal is its <b><a class="term" data-term="g-impedance">impedance</a> (Z)</b>, in ohms.</p>
+    <p>Practical rule for audio interconnection: <b>low impedance drives high impedance</b> (bridging). A line output of ~100–600&nbsp;Ω feeds a line input of ~10–50&nbsp;kΩ. Get it backwards (e.g., loading a guitar pickup with 1&nbsp;kΩ) and you lose level and treble.</p>
+    <details class="theory"><summary>Reactance — the math</summary><div>
+      <p>A capacitor's <a class="term" data-term="g-reactance">reactance</a> falls with frequency; an inductor's rises:</p>
+      <div class="eq">Xc = 1 / (2πfC) &nbsp;&nbsp;&nbsp; XL = 2πfL</div>
+      <p>Example: 10&nbsp;µF at 20&nbsp;Hz → Xc ≈ 800&nbsp;Ω. At 20&nbsp;kHz → 0.8&nbsp;Ω. That's why a series <a class="term" data-term="g-coupling-cap">coupling cap</a> passes audio but blocks DC (f = 0 → Xc = ∞), and why <i>too small</i> a coupling cap thins out the bass: it forms a high-pass filter with the next stage's input impedance.</p>
+    </div></details>
+  </div>
+
+  <div class="card">
+    <h3>Coupling &amp; decoupling capacitors</h3>
+    <p>Same component, two jobs, opposite orientation:</p>
+    <ul>
+      <li><b>Coupling</b> (in series with the signal): passes audio between stages, blocks each stage's DC bias from the next. Fails open/dry → weak or missing signal, often bass-first.</li>
+      <li><b>Decoupling/bypass</b> (from a supply rail to ground): shorts noise on the rail to ground, gives each stage a local energy reservoir. Fails → hum, oscillation, <a class="term" data-term="g-motorboating">motorboating</a>.</li>
+    </ul>
+    <p>When tracing, coupling caps are your milestones: signal on one side but not the other = you've bracketed the fault.</p>
+  </div>
+
+  <div class="card">
+    <h3>Decibels &amp; audio levels</h3>
+    <p>dB expresses a <b>ratio</b>, logarithmically. For voltages:</p>
+    <div class="eq" style="font-family:ui-monospace,monospace;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:13.5px">dB = 20 × log₁₀(V1 / V2)</div>
+    <table>
+      <tr><th>dB</th><th>Voltage ratio</th></tr>
+      <tr><td>+6 dB</td><td>×2</td></tr>
+      <tr><td>+20 dB</td><td>×10</td></tr>
+      <tr><td>+60 dB</td><td>×1000</td></tr>
+      <tr><td>−6 dB</td><td>×0.5</td></tr>
+    </table>
+    <p>Absolute flavors: <b>dBV</b> (ref 1&nbsp;V), <b>dBu</b> (ref 0.775&nbsp;V). Consumer gear runs at −10&nbsp;dBV, pro gear at +4&nbsp;dBu — about 12&nbsp;dB apart, which is why consumer sources sound quiet into pro inputs.</p>
+  </div>
+
+  <div class="card">
+    <h3>Frequency &amp; the audio band</h3>
+    <table>
+      <tr><th>Range</th><th>What lives there</th></tr>
+      <tr><td>20–80 Hz</td><td>Sub-bass; also where hum shows up (50/60 Hz)</td></tr>
+      <tr><td>80–300 Hz</td><td>Bass, warmth; 100/120 Hz buzz = <a class="term" data-term="g-rectifier">rectifier</a> <a class="term" data-term="g-ripple">ripple</a></td></tr>
+      <tr><td>300 Hz–3 kHz</td><td>Midrange — voices, most musical energy</td></tr>
+      <tr><td>3–8 kHz</td><td>Presence, edge, tape hiss starts</td></tr>
+      <tr><td>8–20 kHz</td><td>Air; first thing lost to <a class="term" data-term="g-azimuth">azimuth</a> error or worn heads</td></tr>
+    </table>
+    <p>Diagnostic pearl: <b>hum at mains frequency</b> (50/60&nbsp;Hz) points to induction or ground problems; <b>buzz at twice mains</b> (100/120&nbsp;Hz) points to power-supply ripple — tired filter caps or a failing rectifier.</p>
+  </div>
+
+  <div class="card">
+    <h3>Signal vs power</h3>
+    <p>Every stage has two lives: the <b>signal path</b> (audio in → audio out) and the <b>power path</b> (rails feeding it). A stage can only be as good as its supply — which is why diagnostics start at the rails (<a class="xref" href="#s6">SEC 06.3</a>). No rail, no audio, and no amount of <a class="term" data-term="g-signal-tracing">signal tracing</a> will find a fault that's actually a dead <a class="term" data-term="g-regulator">regulator</a>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Semiconductors in one minute</h3>
+    <p>Silicon parts conduct only under the right conditions:</p>
+    <ul>
+      <li><b>Diode:</b> one-way valve. Conducts forward with ~0.6&nbsp;V drop (silicon), blocks reverse.</li>
+      <li><b>Transistor:</b> a valve controlled by a small signal — the basis of amplification.</li>
+      <li><b>IC:</b> many transistors pre-wired into a function (op-amp, regulator, motor driver).</li>
+    </ul>
+    <details class="theory"><summary>Why 0.6 V matters everywhere</summary><div>
+      <p>A silicon junction doesn't conduct meaningfully until ~0.5–0.7&nbsp;V forward bias. This number is your friend: diode-test mode reads it directly, a healthy BJT shows it base-to-emitter, and in a working amp you'll find ~0.6&nbsp;V between base and emitter of every conducting transistor. Germanium parts (common in 60s gear) drop only 0.2–0.3&nbsp;V.</p>
+    </div></details>
+  </div>
+
+  </div>
+</section>
+<!-- ============ SEC 02 COMPONENTS ============ -->
+<section class="sec" id="s2">
+  <div class="sec-head"><span class="num">SEC 02</span><h2>Components</h2></div>
+  <p class="sec-sub">Per part: what it does, how to identify it, how to test it, how it fails.</p>
+  <div class="cards">
+
+  <div class="card">
+    <h3>Resistors</h3>
+    <h4>Identify</h4>
+    <p>Color bands (through-hole) or printed digits (SMD, power resistors). Decoder in <a class="xref" href="#s3">SEC 03</a> and calculator in <a class="xref" href="#s7">SEC 07</a>.</p>
+    <h4>Test</h4>
+    <p>Ω mode, power off. In-circuit, parallel paths make readings <b>low</b> — a reading at or below marked value proves nothing, but a reading <b>above</b> marked value means the resistor has drifted or opened. Lift one leg to be sure.</p>
+    <h4>Failure modes</h4>
+    <ul>
+      <li><b>Open or drifted high</b> — the common failures. Carbon composition (old gear) drifts high with age even unstressed.</li>
+      <li><b>Burnt/discolored</b> — overload. Find the downstream cause first.</li>
+      <li>Resistors essentially never drift <i>low</i>.</li>
+    </ul>
+    <h4>Replacing</h4>
+    <p>Match value and meet-or-exceed the power rating. Metal film is the default: quieter and more stable than carbon film. <b>Fusible/flameproof resistors</b> (often blue-grey or marked on the schematic with a special symbol) are safety parts — replace like-for-like, never with a standard resistor.</p>
+  </div>
+
+  <div class="card">
+    <h3>Capacitors — electrolytic</h3>
+    <h4>Identify</h4>
+    <p>Cylindrical cans, value printed directly (e.g. <code>470µF 25V</code>). <b>Polarized</b> — stripe marks the negative lead; PCB silkscreen shows + or a shaded half. Reversed installation destroys them.</p>
+    <h4>Test</h4>
+    <p>Discharge first. DMM capacitance mode gives µF (out of circuit) but <b>not ESR</b> — a cap can read full value and still be bad. Visual: bulged vent, leaked <a class="term" data-term="g-electrolyte">electrolyte</a> (brown crust, fishy smell), lifted sleeve. When in doubt in a critical spot: substitute.</p>
+    <h4>Failure modes</h4>
+    <ul>
+      <li><b>Dry-out</b> (capacitance falls, ESR rises) — the classic aging failure. In supplies → hum/<a class="term" data-term="g-ripple">ripple</a>; in signal path → weak bass, low output.</li>
+      <li><b>Leakage</b> (DC leaks through) — shifts bias of the next stage, causes crackle, distortion, scratchy <a class="term" data-term="g-pot">pots</a> (DC on the <a class="term" data-term="g-wiper">wiper</a>).</li>
+      <li><b>Short</b> — rarer, usually after reverse polarity or overvoltage.</li>
+    </ul>
+    <h4>Replacing</h4>
+    <p>Match capacitance; voltage rating equal or higher; 105&nbsp;°C rating preferred; watch physical size and lead spacing. Bipolar (NP/BP) types exist for spots with no defined polarity — like your tracer's probe cap.</p>
+  </div>
+
+  <div class="card">
+    <h3>Capacitors — film &amp; ceramic</h3>
+    <h4>Identify</h4>
+    <p><b>Film</b> (polyester/"greencap", polypropylene): boxy or dipped, marked with 3-digit code (<code>473 = 47nF</code>). Non-polarized. <b>Ceramic</b>: small discs or SMD, same code scheme.</p>
+    <h4>Test / failure</h4>
+    <p>Both are very reliable — they're near the bottom of the suspect list. Film caps occasionally go open or leaky in tone circuits; old wax/paper caps (pre-1970s) are always suspect. Ceramics can crack from board flex and go short or intermittent.</p>
+    <h4>Audio notes</h4>
+    <p>Film is preferred in the signal path and EQ networks. Small ceramics (10–100&nbsp;pF) near op-amps are stability/compensation parts — don't omit them when rebuilding.</p>
+  </div>
+
+  <div class="card">
+    <h3>Capacitors — tantalum</h3>
+    <p>Small teardrop beads (often yellow/orange), polarized, marked with a + bar. Common in 70s–80s gear as compact electrolytics.</p>
+    <h4>Failure modes</h4>
+    <p><b>Tantalums fail short</b> — often dramatically, sometimes with smoke. A dead short across a <a class="term" data-term="g-rail">rail</a> in vintage gear? Check the tantalums early. Any tantalum that's seen a voltage spike is suspect even if it looks fine.</p>
+    <h4>Replacing</h4>
+    <p>A modern aluminum electrolytic of the same value/voltage is usually a safe, more reliable substitute in audio circuits.</p>
+  </div>
+
+  <div class="card">
+    <h3>Diodes</h3>
+    <h4>Types you'll meet</h4>
+    <table>
+      <tr><th>Type</th><th>Fwd drop</th><th>Job</th></tr>
+      <tr><td>Silicon <a class="term" data-term="g-rectifier">rectifier</a> (1N400x)</td><td>~0.6–0.7 V</td><td>Power supply rectification</td></tr>
+      <tr><td>Signal (1N4148)</td><td>~0.6 V</td><td>Switching, <a class="term" data-term="g-clipping">clipping</a>, protection</td></tr>
+      <tr><td>Schottky</td><td>~0.15–0.45 V</td><td>Low-loss rectification</td></tr>
+      <tr><td>Germanium (OA90 etc.)</td><td>~0.2–0.3 V</td><td>Vintage detectors/bias</td></tr>
+      <tr><td><a class="term" data-term="g-zener">Zener</a></td><td>0.6 V fwd; rated V reverse</td><td>Voltage reference/clamp</td></tr>
+      <tr><td>LED</td><td>~1.8–3.3 V</td><td>Indicators, meters</td></tr>
+    </table>
+    <h4>Identify</h4>
+    <p>Band = cathode (the bar in the symbol). Current flows anode → cathode when forward biased.</p>
+    <h4>Test</h4>
+    <p>Diode mode: forward reads the drop above, reverse reads OL. <b>Both directions conducting = shorted; both OL = open.</b> In-circuit readings can lie — lift a leg to confirm.</p>
+    <h4>Failure modes</h4>
+    <p>Rectifiers fail <b>short</b> (blows the fuse) more often than open. A shorted rectifier can also pump AC into the filter caps and cook them — check both.</p>
+  </div>
+
+  <div class="card">
+    <h3>Transistors — BJT</h3>
+    <h4>Identify</h4>
+    <p>Three legs: base, collector, emitter. NPN or PNP. <b>Pinout varies by part — never assume.</b> Japanese numbering: 2SA/2SB = PNP, 2SC/2SD = NPN (the "2S" is often omitted on the case: <code>C1815</code> = 2SC1815).</p>
+    <h4>Test (diode method)</h4>
+    <ol>
+      <li>Power off; ideally lift the part or at least two legs.</li>
+      <li>Diode mode. <b>NPN:</b> red on base → ~0.6&nbsp;V to both collector and emitter; reversed reads OL. <b>PNP:</b> black on base gives the ~0.6&nbsp;V readings.</li>
+      <li>Collector↔emitter should read OL both ways (small-signal parts).</li>
+    </ol>
+    <p>Any junction reading near 0&nbsp;V = shorted; OL where you expect 0.6&nbsp;V = open.</p>
+    <h4>Failure modes</h4>
+    <p>Short C-E (common in output stages — takes emitter resistors and drivers with it), open junction, or leaky/noisy (crackle that changes with freeze spray). In a working circuit, a conducting BJT shows <b>V<sub>BE</sub> ≈ 0.6 V</b> — measure base-to-emitter in-circuit, powered, as a fast health check.</p>
+  </div>
+
+  <div class="card">
+    <h3>Transistors — JFET &amp; MOSFET</h3>
+    <p><b>JFETs</b> (gate, drain, source) show up in audio input stages and muting circuits — high input <a class="term" data-term="g-impedance">impedance</a>, gentle overload. <b>MOSFETs</b> appear in power output stages and switching.</p>
+    <h4>Test</h4>
+    <p>No clean diode-mode test like a BJT; the reliable bench check is substitution or a component tester. A JFET should read a low, symmetric resistance drain↔source and OL from gate (it's a reverse-biased junction).</p>
+    <h4>Handling</h4>
+    <p><b>MOSFET gates are <a class="term" data-term="g-esd">ESD</a>-sensitive.</b> Touch grounded metal before handling, keep parts in anti-static foam, solder the gate last if you can.</p>
+  </div>
+
+  <div class="card">
+    <h3>Op-amps &amp; audio ICs</h3>
+    <h4>Common in vintage audio</h4>
+    <table>
+      <tr><th>Part</th><th>What it is</th></tr>
+      <tr><td>4558 / RC4558</td><td>Dual op-amp, everywhere in Japanese mixers</td></tr>
+      <tr><td>TL072 / TL074</td><td>Dual/quad JFET-input, low noise for high-Z sources</td></tr>
+      <tr><td>NE5532 / 5534</td><td>Dual/single low-noise workhorse, common upgrade</td></tr>
+      <tr><td>LM386</td><td>Small power amp (your tracer's heart)</td></tr>
+      <tr><td>BA-series (Rohm)</td><td>Japanese audio ICs — e.g. BA311F in the EM-80 PA board</td></tr>
+    </table>
+    <h4>Test in-circuit (powered)</h4>
+    <ol>
+      <li>Rails present at the supply pins? (Dual op-amps: V+ pin 8, V− pin 4 on most DIP-8 duals — verify against the datasheet.)</li>
+      <li>Output pin sitting at a sane DC point (≈0&nbsp;V on dual rails, ≈½ Vcc single-supply)? Output slammed to a rail = dead stage or bad input bias.</li>
+      <li>Signal in, no signal out, with good rails and sane surroundings → suspect the IC; confirm by substitution (socket it).</li>
+    </ol>
+    <p>Op-amp theory: <a class="xref" href="#s6">SEC 06.2</a>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Inductors &amp; transformers</h3>
+    <h4>Power transformers</h4>
+    <p>Test unplugged with Ω: primary reads tens to hundreds of ohms; secondaries read low (often &lt;10&nbsp;Ω). <b>Open winding = dead transformer</b> — but check for a hidden <a class="term" data-term="g-thermal-fuse">thermal fuse</a> buried under the outer wrap first; some are replaceable.</p>
+    <h4>Audio transformers &amp; inductors</h4>
+    <p>Mic input transformers, output transformers, and EQ inductors: check winding continuity and compare channels. Rarely fail on their own; usually killed by external faults (<a class="term" data-term="g-phantom-power">phantom power</a> accidents, DC through a winding).</p>
+    <h4>Caution</h4>
+    <p>Never probe the primary side live as a routine step. Resistance checks unplugged tell you most of what you need.</p>
+  </div>
+
+  <div class="card">
+    <h3>Fuses</h3>
+    <p>Marked with current, voltage, and speed: <b>F</b> = fast, <b>T</b> = slow-blow (time-delay). Slow-blow tolerates inrush (transformers, motors); substituting a fast fuse causes nuisance blowing, substituting a bigger fuse causes fires.</p>
+    <h4>Test</h4>
+    <p>Continuity, out of the holder. Glass fuses can look intact and be open at the end caps.</p>
+    <h4>Rule</h4>
+    <p><b>A blown fuse is a symptom.</b> If it blew violently (blackened glass), there's a short — usually rectifier, filter cap, or output transistors. Find it before powering up with a new fuse; a <a class="term" data-term="g-dim-bulb">dim-bulb</a> tester or series lamp is the safe way to first power-up after a short.</p>
+  </div>
+
+  <div class="card">
+    <h3>Relays &amp; switches</h3>
+    <p><b>Speaker protection relays</b> (amps/receivers): contacts oxidize → one dead or crackly channel that "comes alive" when you thump the volume. Diagnose by clicking sound at turn-on + signal present before the relay, absent after. Fix by replacing the relay (contact cleaning is temporary).</p>
+    <p><b>Slide &amp; rotary switches:</b> two distinct failures — <b>dirty contacts</b> (fix with DeoxIT and working the switch) and <b>cracked solder joints</b> where the switch body meets the PCB (fix with <a class="term" data-term="g-reflow">reflow</a>). Board-mounted slide switches take mechanical stress every use; <a class="term" data-term="g-cold-joint">cold joints</a> there are epidemic in 70s–80s Japanese gear. Full treatment: <a class="xref" href="#s6">SEC 06.4</a>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Belts, idlers &amp; pinch rollers</h3>
+    <p>The consumables of tape gear. Rubber has a service life of 15–30 years no matter how it was stored.</p>
+    <h4>Assess</h4>
+    <ul>
+      <li><b>Belt:</b> stretched, glossy, or turned to tar/goo. If it snaps back slowly when stretched slightly, it's done.</li>
+      <li><b>Idler tire:</b> glazed (shiny) surface slips. Hardened rubber = replace.</li>
+      <li><b>Pinch roller:</b> glazing, cracks, flat spots, or a concave groove worn where the tape rides → wow/<a class="term" data-term="g-flutter">flutter</a>, tape-eating.</li>
+    </ul>
+    <h4>Belt sizing</h4>
+    <p>Measure the old belt (if not goo) folded flat: fold-flat length × 2 = circumference. Order ~5% smaller circumference to restore tension. If it's goo, measure the pulley path with string. Note cross-section: square, flat, or round — match it.</p>
+    <p>Restoration &amp; cleaning: <a class="xref" href="#s6">SEC 06.5</a>.</p>
+  </div>
+
+  </div>
+</section>
+
+<!-- ============ SEC 03 CODES & MARKINGS ============ -->
+<section class="sec" id="s3">
+  <div class="sec-head"><span class="num">SEC 03</span><h2>Codes &amp; Markings</h2></div>
+  <p class="sec-sub">Decoding what's printed on the part. Interactive versions in <a class="xref" href="#s7">SEC 07</a>.</p>
+  <div class="cards">
+
+  <div class="card">
+    <h3>Resistor color code</h3>
+    <table>
+      <tr><th>Color</th><th>Digit</th><th>Multiplier</th><th>Tol.</th></tr>
+      <tr><td>Black</td><td>0</td><td>×1</td><td>—</td></tr>
+      <tr><td>Brown</td><td>1</td><td>×10</td><td>±1%</td></tr>
+      <tr><td>Red</td><td>2</td><td>×100</td><td>±2%</td></tr>
+      <tr><td>Orange</td><td>3</td><td>×1k</td><td>—</td></tr>
+      <tr><td>Yellow</td><td>4</td><td>×10k</td><td>—</td></tr>
+      <tr><td>Green</td><td>5</td><td>×100k</td><td>±0.5%</td></tr>
+      <tr><td>Blue</td><td>6</td><td>×1M</td><td>±0.25%</td></tr>
+      <tr><td>Violet</td><td>7</td><td>×10M</td><td>±0.1%</td></tr>
+      <tr><td>Grey</td><td>8</td><td>—</td><td>—</td></tr>
+      <tr><td>White</td><td>9</td><td>—</td><td>—</td></tr>
+      <tr><td>Gold</td><td>—</td><td>×0.1</td><td>±5%</td></tr>
+      <tr><td>Silver</td><td>—</td><td>×0.01</td><td>±10%</td></tr>
+    </table>
+    <p><b>4-band:</b> digit, digit, multiplier, <a class="term" data-term="g-tolerance">tolerance</a>. <b>5-band</b> (precision): digit, digit, digit, multiplier, tolerance. Read from the band group toward the lone tolerance band. Mnemonic aside — when in doubt, measure it.</p>
+  </div>
+
+  <div class="card">
+    <h3>Capacitor codes</h3>
+    <h4>3-digit code (pF)</h4>
+    <p>First two digits × 10^(third digit), in picofarads.</p>
+    <table>
+      <tr><th>Code</th><th>Value</th></tr>
+      <tr><td>101</td><td>100 pF</td></tr>
+      <tr><td>102</td><td>1 nF</td></tr>
+      <tr><td>103</td><td>10 nF</td></tr>
+      <tr><td>104</td><td>100 nF (0.1 µF)</td></tr>
+      <tr><td>473</td><td>47 nF</td></tr>
+      <tr><td>225</td><td>2.2 µF</td></tr>
+    </table>
+    <h4>Tolerance letters</h4>
+    <p><code>F</code>=±1% <code>G</code>=±2% <code>J</code>=±5% <code>K</code>=±10% <code>M</code>=±20% <code>Z</code>=+80/−20%</p>
+    <h4>Also seen</h4>
+    <p>European style: <code>4n7</code> = 4.7&nbsp;nF, <code>2u2</code> = 2.2&nbsp;µF (the letter sits where the decimal goes). Electrolytics print value and voltage directly.</p>
+  </div>
+
+  <div class="card">
+    <h3>SMD markings</h3>
+    <p><b>Resistors:</b> 3-digit = two digits × 10^third (<code>472</code> = 4.7&nbsp;kΩ); 4-digit = three digits × 10^fourth (<code>4701</code> = 4.7&nbsp;kΩ). <code>R</code> marks a decimal: <code>4R7</code> = 4.7&nbsp;Ω. Tiny parts use EIA-96 (two digits + a letter) — look that table up when you meet one.</p>
+    <p><b>SMD ceramics are unmarked</b> — you can't read them, only measure or consult the schematic.</p>
+    <p><b>SMD transistors/diodes</b> carry short codes (<code>1AM</code>, <code>A7</code>…) that map to part numbers via SMD code books — search "<i>SMD marking</i> + the code."</p>
+  </div>
+
+  <div class="card">
+    <h3>Schematic symbols</h3>
+    <div class="sym"><svg width="90" height="26" viewBox="0 0 90 26"><path d="M2 13h14l4-8 8 16 8-16 8 16 8-16 8 16 4-8h14"/></svg><div class="nm"><b>Resistor</b><span>zigzag (US) or plain box (EU)</span></div></div>
+    <div class="sym"><svg width="90" height="26" viewBox="0 0 90 26"><path d="M2 13h36M52 13h36M38 3v20M52 3v20"/></svg><div class="nm"><b>Capacitor</b><span>two parallel plates</span></div></div>
+    <div class="sym"><svg width="90" height="26" viewBox="0 0 90 26"><path d="M2 13h36M38 3v20M52 13h36M56 3c-5 3-5 17 0 20M30 4v6M27 7h6"/></svg><div class="nm"><b>Polarized cap</b><span>curved plate = negative; + marked</span></div></div>
+    <div class="sym"><svg width="90" height="26" viewBox="0 0 90 26"><path d="M2 13h28M60 13h28M32 3l24 10-24 10zM56 3v20"/></svg><div class="nm"><b>Diode</b><span>arrow = current flow; bar = cathode (band)</span></div></div>
+    <div class="sym"><svg width="90" height="30" viewBox="0 0 90 30"><path d="M2 15h28M60 15h28M32 5l24 10-24 10zM56 5v20M62 4l7-7M70 8l7-7" transform="translate(0,6) scale(1,0.75)"/></svg><div class="nm"><b>LED</b><span>diode + outgoing arrows</span></div></div>
+    <div class="sym"><svg width="90" height="34" viewBox="0 0 90 34"><circle cx="46" cy="17" r="14"/><path d="M14 17h24M38 8v18M38 13l14-7M38 21l14 7M52 28l-6.4-.5M52 28l-4.2-4.9"/></svg><div class="nm"><b>NPN transistor</b><span>arrow points out = NPN ("Not Pointing iN")</span></div></div>
+    <div class="sym"><svg width="90" height="30" viewBox="0 0 90 30"><path d="M45 2v12M31 14h28M35 20h20M40 26h10"/></svg><div class="nm"><b>Ground</b><span>the 0 V reference</span></div></div>
+    <div class="sym"><svg width="90" height="34" viewBox="0 0 90 34"><path d="M28 4v26l34-13zM10 10h18M10 24h18M62 17h18"/><text x="32" y="14" font-size="9" fill="currentColor" stroke="none">−</text><text x="32" y="27" font-size="9" fill="currentColor" stroke="none">+</text></svg><div class="nm"><b>Op-amp</b><span>triangle; − inverting, + non-inverting inputs</span></div></div>
+    <div class="sym"><svg width="90" height="32" viewBox="0 0 90 32"><path d="M8 20h10l3-6 6 12 6-12 6 12 6-12 6 12 3-6h10M45 2v8m0 0-4 5m4-5 4 5" transform="translate(0,2)"/></svg><div class="nm"><b>Potentiometer</b><span>resistor + <a class="term" data-term="g-wiper">wiper</a> arrow</span></div></div>
+    <div class="sym"><svg width="90" height="34" viewBox="0 0 90 34"><path d="M24 5h12M24 29h12M54 5h12M54 29h12M36 5a5 4 0 0 0 0 8a5 4 0 0 0 0 8a5 4 0 0 0 0 8M54 5a5 4 0 0 1 0 8a5 4 0 0 1 0 8a5 4 0 0 1 0 8M44 4v26M47 4v26"/></svg><div class="nm"><b>Transformer</b><span>two windings, core bars between</span></div></div>
+  </div>
+
+  <div class="card">
+    <h3>Reading part designators</h3>
+    <table>
+      <tr><th>Prefix</th><th>Part</th></tr>
+      <tr><td>R</td><td>Resistor</td></tr>
+      <tr><td>C</td><td>Capacitor</td></tr>
+      <tr><td>L</td><td>Inductor</td></tr>
+      <tr><td>D</td><td>Diode</td></tr>
+      <tr><td>Q / TR</td><td>Transistor</td></tr>
+      <tr><td>IC / U</td><td>Integrated circuit</td></tr>
+      <tr><td>VR</td><td>Variable resistor (<a class="term" data-term="g-pot">pot</a>/trimmer)</td></tr>
+      <tr><td>SW / S</td><td>Switch</td></tr>
+      <tr><td>J / CN</td><td>Jack / connector</td></tr>
+      <tr><td>T</td><td>Transformer</td></tr>
+      <tr><td>F</td><td>Fuse</td></tr>
+    </table>
+    <p>Multi-channel gear often encodes the channel in the hundreds digit — e.g. R112 / R212 / R312 / R412 are the same resistor on channels 1–4 (exactly how the PMD720 gain pots were laid out). <b>Confirm on the silkscreen, not by pattern-matching</b> — schematic and board numbering don't always agree.</p>
+  </div>
+
+  <div class="card">
+    <h3>Regulator pinouts — the classic trap</h3>
+    <p>TO-220 three-terminal <a class="term" data-term="g-regulator">regulators</a>, facing the printed side, left to right:</p>
+    <table>
+      <tr><th>Family</th><th>1</th><th>2</th><th>3</th></tr>
+      <tr><td>78xx (positive)</td><td>IN</td><td>GND</td><td>OUT</td></tr>
+      <tr><td>79xx (negative)</td><td>GND</td><td>IN</td><td>OUT</td></tr>
+    </table>
+    <p>They are <b>not</b> the same order. Verify against the datasheet before probing or replacing — a swapped 79xx is a rite of passage nobody enjoys.</p>
+  </div>
+
+  </div>
+</section>
+<!-- ============ SEC 04 DIAGNOSTICS ============ -->
+<section class="sec" id="s4">
+  <div class="sec-head"><span class="num">SEC 04</span><h2>Measurement &amp; Diagnostics</h2></div>
+  <p class="sec-sub">Form a theory, collect evidence, then act. Never solder on a hunch.</p>
+  <div class="cards">
+
+  <div class="card">
+    <h3>The diagnostic mindset</h3>
+    <ol>
+      <li><b>Verify the symptom yourself.</b> Reproduce it. Note exactly what changes it (channel, control position, warm-up, vibration).</li>
+      <li><b>Rule out the cheap stuff:</b> cables, source, jacks, dirty controls, <a class="term" data-term="g-insert-point">insert points</a>.</li>
+      <li><b>Form a theory</b> of where the fault could live — the fewest blocks that explain <i>all</i> the evidence.</li>
+      <li><b>Design a measurement that can prove the theory wrong.</b> Then take it.</li>
+      <li>Only when the evidence points at a specific joint or part do you heat up the iron.</li>
+    </ol>
+    <p>Corollary: one fault at a time. If you clean, <a class="term" data-term="g-reflow">reflow</a>, and recap all at once and it works, you learned nothing — and if it doesn't, you've added variables.</p>
+  </div>
+
+  <div class="card">
+    <h3>Visual inspection checklist</h3>
+    <p>Good light, magnification, board out of the chassis if practical.</p>
+    <ul>
+      <li><b><a class="term" data-term="g-cold-joint">Cold/cracked solder joints</a></b> — dull, grainy, or a fine ring crack around the lead. Prime suspects: anything mechanically stressed — jacks, switches, <a class="term" data-term="g-pot">pots</a>, connectors, heavy components, heat-cycled parts.</li>
+      <li><b>Capacitors</b> — bulged tops, leaked <a class="term" data-term="g-electrolyte">electrolyte</a>, lifted sleeves.</li>
+      <li><b>Burnt parts</b> — discolored resistors, charred board.</li>
+      <li><b>Corrosion</b> — battery leakage (green/white crust) eats traces far from the battery bay; follow it.</li>
+      <li><b>Broken traces</b> — hairline cracks near flex points and mounting screws.</li>
+      <li><b>Previous repairs</b> — someone else's <a class="term" data-term="g-flux">flux</a> blobs and lifted pads tell a story.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Multimeter modes in anger</h3>
+    <table>
+      <tr><th>Mode</th><th>How &amp; gotchas</th></tr>
+      <tr><td>DC V</td><td>Probes in parallel with the thing measured. Black to ground for <a class="term" data-term="g-rail">rail</a> checks. Safe on powered gear (within meter ratings).</td></tr>
+      <tr><td>AC V</td><td>Rough signal/<a class="term" data-term="g-ripple">ripple</a> check. Average-responding meters are only accurate on sine waves.</td></tr>
+      <tr><td>Ω</td><td><b>Power off, caps discharged.</b> In-circuit readings are ≤ true value due to parallel paths.</td></tr>
+      <tr><td>Continuity</td><td>Power off. Beep threshold is typically tens of ohms — a "beep" is not proof of a <i>good</i> joint, just a connected one.</td></tr>
+      <tr><td>Diode</td><td>Power off. Reads forward drop in volts. The go-to for diodes, BJTs, and finding shorted junctions.</td></tr>
+      <tr><td>Capacitance</td><td>Part removed &amp; discharged. Measures µF only — <b>no ESR</b>. A cap with full capacitance and sky-high ESR reads "fine."</td></tr>
+      <tr><td>Current (A)</td><td>Meter in <b>series</b> — you must break the circuit. Rarely needed in audio repair; wrong hookup blows the meter fuse. Mostly you infer current from voltage across a known resistor: I = V/R.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Power supply first</h3>
+    <p>Before tracing any signal fault, verify the rails — a whole class of "dead channel / distortion / hum" faults is really a supply fault.</p>
+    <ol>
+      <li>Find the rail test points (service manual) or the <a class="term" data-term="g-regulator">regulator</a> outputs / main filter caps.</li>
+      <li>DC V, black probe to ground: are all rails present and within ~5% of spec?</li>
+      <li>Flip to AC V on each rail: more than a few tens of mV of ripple on a regulated rail, or a few hundred mV on a raw rail, points at tired filter caps.</li>
+      <li>A rail that's low <i>and</i> a regulator that's hot = something downstream is dragging it down. Don't replace the regulator yet — find the load.</li>
+    </ol>
+    <p>Deep dive on supply topology and failures: <a class="xref" href="#s6">SEC 06.3</a>.</p>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">My bench</span>
+    <h3>Signal tracing workflow</h3>
+    <p>The tracer answers one question per touch: <i>is healthy audio present at this node?</i></p>
+    <ol>
+      <li>Unit off. Clip tracer ground to chassis/signal ground. Power the unit.</li>
+      <li>Feed a steady source — phone playing a 1&nbsp;kHz tone — into the suspect input at modest level.</li>
+      <li>Verify the tracer on a <b>known-good channel</b> at the same node first. Now you know what "good" sounds like there.</li>
+      <li>Probe the suspect channel at the same node. Compare.</li>
+      <li>Walk the path: input jack → switch → <a class="term" data-term="g-attenuator">attenuator</a> → preamp IC → fader → <a class="term" data-term="g-bus">bus</a>. Signal present at node A, gone at node B → the fault lives between them.</li>
+      <li>Bracket down to the smallest span, then switch to DC checks and visual inspection inside it.</li>
+    </ol>
+    <p>Levels get hotter as you move downstream — turn the tracer's trim down as you go. 50&nbsp;V max, no tube gear, ever.</p>
+  </div>
+
+  <div class="card">
+    <h3>Half-split method</h3>
+    <p>Don't walk a 12-stage path one stage at a time. Probe the <b>middle</b>: signal good there → fault is downstream; bad → upstream. Each probe halves the search space. A 16-node path takes 4 touches, not 16.</p>
+    <p>Works for <a class="term" data-term="g-signal-tracing">signal tracing</a>, continuity hunting on a long broken trace, and cable faults alike.</p>
+  </div>
+
+  <div class="card">
+    <h3>The stereo advantage</h3>
+    <p>Multi-channel gear ships with its own reference: the working channel. Anything measurable — DC voltages, resistances, signal level at a node, even component temperature — can be compared L vs R (or channel 1 vs 2). A reading that differs from its healthy twin is a lead; identical readings exonerate that node. This is the single biggest time-saver in mixer and amp repair.</p>
+  </div>
+
+  <div class="card">
+    <h3>Dead channel — the standard hunt</h3>
+    <ol>
+      <li><b>Swap test:</b> exchange input cables L↔R. Fault moves → source/cable. Stays → the unit.</li>
+      <li><b>Move the injection point:</b> feed signal into a later access point (tape in, insert return, main in). Channel works from there → fault is upstream of that point.</li>
+      <li><b>Work every control</b> in the dead path: pots, switches. Crackle or momentary life → dirty/broken control or its joints.</li>
+      <li><b>Visual pass</b> over the channel strip: cold joints at pots, switches, jacks.</li>
+      <li><b>Trace</b> with tone + tracer, comparing to the good channel, until bracketed.</li>
+      <li><b>DC checks</b> in the bracket: op-amp rails and output DC, transistor V<sub>BE</sub>, <a class="term" data-term="g-coupling-cap">coupling cap</a> both sides.</li>
+      <li>Now, and only now: reflow / replace the identified culprit. Retest.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Intermittent faults</h3>
+    <p>The hardest class. Make it fail on demand:</p>
+    <ul>
+      <li><b>Percussive:</b> gentle taps with a chopstick/pencil around the board while signal plays — a crackle localized to one area means a bad joint or fracture there.</li>
+      <li><b>Thermal:</b> freeze spray (or an air duster held upside-down, sparingly) on individual suspects; a hair dryer for the reverse. Fault appears/disappears with temperature on one part → that part or its joints.</li>
+      <li><b>Flex:</b> light pressure on connectors and board edges.</li>
+    </ul>
+    <p>Never "fixed itself." It will be back — with the lid on.</p>
+  </div>
+
+  <div class="card">
+    <h3>Reading DC conditions in a stage</h3>
+    <p>Powered, DC V, black to ground:</p>
+    <ul>
+      <li><b>Op-amp output:</b> ≈0&nbsp;V (dual rails) or ≈½ Vcc (single supply). Pinned to a rail = stage dead or driven wrong.</li>
+      <li><b>BJT:</b> V<sub>BE</sub> ≈ 0.6&nbsp;V if conducting. 0&nbsp;V = off (maybe correctly); &gt;0.8&nbsp;V and cold = suspicious.</li>
+      <li><b>Coupling cap:</b> DC differs across it (that's its job); the <i>downstream</i> side should match the next stage's expected bias. DC on a pot's <a class="term" data-term="g-wiper">wiper</a> = leaky upstream coupling cap.</li>
+      <li>Compare everything to the schematic's marked voltages (good service manuals print them) or the healthy channel.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Capacitor reality check</h3>
+    <ul>
+      <li>DMM capacitance mode ≠ cap tester. It misses <a class="term" data-term="g-esr"><b>ESR</b></a> (the aging failure) and <b>leakage</b> entirely.</li>
+      <li>Bench truth without an ESR meter: <b>substitution</b>. Tack a known-good cap in parallel (for suspected dry-out on supplies, power off, discharge first) or in place.</li>
+      <li>Signal-path caps: the tracer tells you — signal in one side, weak/missing out the other.</li>
+      <li>Shotgun recapping is a restoration choice, not a diagnostic method. Diagnose first.</li>
+    </ul>
+  </div>
+
+  <div class="card warn">
+    <span class="tag warnt">Safety</span>
+    <h3>Probing powered gear</h3>
+    <ul>
+      <li>One hand. Clip the black lead to ground so you're only steering one probe.</li>
+      <li>Probe tips slip. A slip that bridges two IC pins can kill the IC — use fine tips, steady your hand on the chassis (if it's grounded and low-voltage), or clip on with the power off and then power up.</li>
+      <li>Stay off the mains side. Everything you need lives on the secondary.</li>
+      <li>Rings and watches off.</li>
+    </ul>
+  </div>
+
+  </div>
+</section>
+
+<!-- ============ SEC 05 TECHNIQUES ============ -->
+<section class="sec" id="s5">
+  <div class="sec-head"><span class="num">SEC 05</span><h2>Techniques</h2></div>
+  <p class="sec-sub">Hands on the hardware: soldering, desoldering, cleaning, lubrication, wiring.</p>
+  <div class="cards">
+
+  <div class="card">
+    <h3>Soldering — the joint</h3>
+    <p>A good joint is <b>shiny, concave (volcano-shaped), and <a class="term" data-term="g-wetting">wets</a> both the pad and the lead</b>. Dull, blobby, or balled on the lead = redo it.</p>
+    <ol>
+      <li>Clean, <a class="term" data-term="g-tinning">tinned</a> tip. Wipe, add a touch of solder — a bright tip transfers heat; a black one doesn't.</li>
+      <li>Touch the tip to <b>both pad and lead</b> simultaneously. Wait ~1 second.</li>
+      <li>Feed solder into the <b>joint</b>, not the iron. It should flow instantly and pull into the joint.</li>
+      <li>Remove solder, then iron. Total contact ~2–3 s. Don't blow on it or move the part while it sets.</li>
+    </ol>
+    <p>63/37 leaded is <a class="term" data-term="g-eutectic">eutectic</a> — it snaps from liquid to solid with no mushy phase, which is exactly why it makes reliable joints for hand work. 0.6&nbsp;mm for PCB work, 1.0&nbsp;mm for jacks, <a class="term" data-term="g-pot">pots</a>, and ground lugs that need volume.</p>
+    <details class="theory"><summary>Heat, thermal mass, and why big pads fight you</summary><div>
+      <p>Solder flows when the <i>joint</i> reaches temperature, not the iron. A ground-plane pad or a pot casing sinks heat away as fast as a small iron delivers it — the fix is more thermal transfer, not more time: a bigger/broader tip, a touch of fresh solder to bridge tip→joint (liquid metal conducts far better than a point contact), and higher dial temp for that joint only. Prolonged heating is what lifts pads; hot-and-fast beats cool-and-slow.</p>
+    </div></details>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">My bench</span>
+    <h3>Iron settings (Tabiger 60&nbsp;W pen)</h3>
+    <table class="kv">
+      <tr><td>PCB signal joints</td><td>~330–350 °C, 0.6 mm solder</td></tr>
+      <tr><td>Jacks, pots, switch lugs</td><td>~370–390 °C, 1.0 mm solder</td></tr>
+      <tr><td>Ground planes / chassis lugs</td><td>~390–400 °C, largest tip, pre-<a class="term" data-term="g-flux">flux</a></td></tr>
+      <tr><td>Between joints</td><td>Wipe, re-tin. Park tinned.</td></tr>
+    </table>
+    <p>It's unregulated-grade control — verify by behavior, not the dial: solder should melt within a second of contact. If you're holding 5+ seconds, go hotter or bigger-tipped, don't wait longer.</p>
+  </div>
+
+  <div class="card">
+    <h3>Desoldering</h3>
+    <h4>Wick (braid)</h4>
+    <ol>
+      <li><b>Add fresh leaded solder to the joint first</b> — especially on old or lead-free joints. It lowers the melting point and improves flow.</li>
+      <li>Flux the wick (flux pen). Lay wick on joint, iron on wick, let capillary action pull.</li>
+      <li>Move to fresh wick per joint. Lift wick and iron together — a cooled wick soldered to the pad rips the pad off.</li>
+    </ol>
+    <h4>Pump (solder sucker)</h4>
+    <p>Melt the joint fully (add solder if needed), get the nozzle right at the lead, trigger while molten. Best for through-hole with generous solder; follow up with wick for cleanup.</p>
+    <h4>Through-hole part removal</h4>
+    <p>Alternate sides, don't lever hot parts. If a lead won't free, add solder and re-clear rather than pulling — pulled pads cost an hour of trace repair. Verify the hole is clear with a light behind the board.</p>
+  </div>
+
+  <div class="card">
+    <h3>Reflowing cold joints</h3>
+    <p>Don't just remelt — a starved or oxidized joint re-freezes bad. Proper <a class="term" data-term="g-reflow">reflow</a>:</p>
+    <ol>
+      <li>Touch of flux on the joint.</li>
+      <li>Heat until fully molten, <b>feed a little fresh solder</b>.</li>
+      <li>If the joint is bulky and grey, wick the old solder off entirely and rebuild it fresh.</li>
+    </ol>
+    <p>When you find one cracked joint on a connector or switch, <b>reflow all its pins</b> — the same stress hit all of them (counter cable and HP jack on the PMD720 were exactly this pattern).</p>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">My bench</span>
+    <h3>Contact cleaning — the DeoxIT discipline</h3>
+    <p>Learned the hard way on the MT120: full-strength aerosol <b>washed the lubricant out of the transport</b> and created the fault it was meant to fix.</p>
+    <ul>
+      <li><b>Inside mechanisms/transports:</b> dropper application only, or the D5 valve on <b>Low</b>, aimed precisely. Never broad-spray.</li>
+      <li><b>Pots &amp; rotary switches:</b> small shot into the element opening, work the control full-travel 20–30×, let flash off before power.</li>
+      <li><b>Faders:</b> D5 is for metal contacts — conductive-plastic faders want DeoxIT <b>F-series (FaderLube)</b>; D-series can strip fader lubrication.</li>
+      <li><b>Slide switches:</b> clean AND inspect the solder joints — dirty contacts and cracked joints produce the same symptom.</li>
+      <li>Excess anywhere attracts dust and migrates. Less is the whole game.</li>
+    </ul>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">My bench</span>
+    <h3>Lubrication rules</h3>
+    <ul>
+      <li><b>Gear teeth stay dry.</b> Grease on teeth collects abrasive debris and migrates onto belts, sensors, and contacts.</li>
+      <li>Lubricate <b>axles, pivots, and sliding metal surfaces</b> only — white lithium, sparingly, applied with a toothpick.</li>
+      <li>Sintered motor bearings: a single drop of light machine oil at the shaft, only if diagnosed dry.</li>
+      <li>Rubber parts never get petroleum products. Restore rubber with a dedicated treatment (Rubber Renue 408C) or replace.</li>
+      <li>If you cleaned a mechanism with solvent, assume you removed factory lube — re-lubricate the wear points deliberately.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Cleaning — solvents &amp; residue</h3>
+    <table>
+      <tr><th>Job</th><th>Use</th></tr>
+      <tr><td>Flux residue after soldering</td><td>99% IPA + brush, wick up with lint-free wipe</td></tr>
+      <tr><td>Tape heads, <a class="term" data-term="g-capstan">capstan</a>, metal guides</td><td>99% IPA on a cotton swab</td></tr>
+      <tr><td>Pinch roller / <a class="term" data-term="g-idler">idler</a> rubber</td><td>Rubber cleaner (Rubber Renue); IPA only briefly — it dries rubber</td></tr>
+      <tr><td>General board grime</td><td>IPA + soft brush; dry fully before power</td></tr>
+      <tr><td>Battery corrosion</td><td>Neutralize (vinegar for alkaline), then IPA, then inspect traces</td></tr>
+      <tr><td>Front panels/plastics</td><td>Mild soap &amp; water; <b>never</b> IPA on lacquered or silkscreened faces — test hidden spot first</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Recapping practice</h3>
+    <ul>
+      <li>Photograph the board; mark polarity orientation of every cap before pulling it. Silkscreens are occasionally wrong — the photo is truth.</li>
+      <li>One at a time, or one small region at a time. Solder, verify, move on.</li>
+      <li>Match µF; voltage equal or higher; 105&nbsp;°C; check diameter and lead pitch.</li>
+      <li>Low-ESR types where the circuit expects them (switch-mode supplies); standard grade is correct for most vintage analog positions.</li>
+      <li>Bipolar caps replace bipolar caps — crossover networks and some coupling spots have no defined polarity.</li>
+      <li>Bend leads to fit; don't force a cap flat against a hot part it used to lean away from.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Wire prep &amp; splicing</h3>
+    <ol>
+      <li>Strip ~5&nbsp;mm without nicking strands (right gauge slot on the stripper).</li>
+      <li>Twist and <b>tin</b> stranded wire before soldering to lugs or pads.</li>
+      <li>Splices: hook or lineman's twist, solder through, heatshrink over — slide the heatshrink on <i>before</i> soldering (everyone forgets once per session).</li>
+      <li>Leave service slack and follow the original routing — a taut wire across a hinge point is a future fault (the PMD720 counter cable needed a spliced extension for exactly this).</li>
+      <li>Route signal wires away from transformers and mains wiring; cross at 90° when they must meet.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Disassembly discipline</h3>
+    <ul>
+      <li>Photos at every layer — connectors, ribbon orientations, ground straps, washer stacks.</li>
+      <li>Screws in labeled containers or an egg carton per assembly stage; magnetic tray for the active handful.</li>
+      <li>Note which screws are shorter/self-tapping — the wrong screw in the wrong hole punches boards.</li>
+      <li>Ribbon connectors: release the latch (many have one); never pull the cable itself.</li>
+      <li><a class="term" data-term="g-esd">ESD</a> basics: touch grounded metal before handling boards; handle by the edges; keep MOS parts in foam.</li>
+    </ul>
+  </div>
+
+  <div class="card warn">
+    <span class="tag warnt">Know when to stop</span>
+    <h3>Beyond bench scope</h3>
+    <ul>
+      <li><b>Tube equipment</b> — different voltage class, different rules, different tooling. Not with this kit.</li>
+      <li><b>Mains-primary rework</b> beyond fuse/switch inspection — proceed only unplugged, with the manual, or not at all.</li>
+      <li><b>Head replacement &amp; azimuth from scratch</b> — needs alignment tapes and measurement gear; touch azimuth only with a reference.</li>
+      <li><b>Power amp output stages after a violent failure</b> — cascade failures need methodical component-level testing and a <a class="term" data-term="g-dim-bulb">dim-bulb</a>/current-limited first start. Doable, but slow down and study the topology first.</li>
+    </ul>
+  </div>
+
+  </div>
+</section>
+<!-- ============ SEC 06 AUDIO DEEP DIVES ============ -->
+<section class="sec" id="s6">
+  <div class="sec-head"><span class="num">SEC 06</span><h2>Audio Deep Dives</h2></div>
+  <p class="sec-sub">The circuit blocks that make up mixers, decks, and amps — and how each one breaks.</p>
+  <div class="cards wide">
+
+  <div class="card">
+    <span class="tag meas">06.1</span>
+    <h3>Anatomy of a signal path</h3>
+    <p>A mixer channel strip, in order — this is your tracing map:</p>
+    <ol>
+      <li><b>Input jack</b> — mechanical contact; switching contacts may normal the input to ground.</li>
+      <li><b>Input selector / pad</b> — slide switch or resistor divider setting mic/line sensitivity. Cold-joint capital of the strip.</li>
+      <li><b>Preamp</b> — first gain stage (op-amp or discrete). Sets the noise floor for everything after.</li>
+      <li><b>EQ</b> — frequency-selective networks around gain stages.</li>
+      <li><b>Fader / pan</b> — the divider you slide.</li>
+      <li><b>Bus summing</b> — channels join through mix resistors into a <a class="term" data-term="g-summing-amp">summing amplifier</a>.</li>
+      <li><b>Master / output stage</b> — final gain, output coupling, jack.</li>
+    </ol>
+    <p>Between every pair of stages: usually a <a class="term" data-term="g-coupling-cap">coupling cap</a>. Each one is a milestone for the tracer. On the EM-80, channel 2's version of this map is jack (LB20063) → selector (KA40007) → ATT board (NA80005) → PA board (NA80001, BA311F) → <a class="term" data-term="g-bus">bus</a>.</p>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">06.2</span>
+    <h3>Amplifier stages &amp; op-amps</h3>
+    <p>An <a class="term" data-term="g-op-amp">op-amp</a> with two resistors is the standard audio gain block. Two shapes cover 90% of what you'll meet:</p>
+    <table>
+      <tr><th>Topology</th><th>Gain</th><th>Traits</th></tr>
+      <tr><td>Non-inverting</td><td>1 + Rf/Rg</td><td>High input <a class="term" data-term="g-impedance">impedance</a>, preserves phase</td></tr>
+      <tr><td>Inverting</td><td>−Rf/Rin</td><td>Input impedance = Rin; summing amps are this</td></tr>
+    </table>
+    <p><b>Bench checks on any op-amp stage:</b> <a class="term" data-term="g-rail">rails</a> at the supply pins; output DC sane (≈0&nbsp;V dual-rail, ≈½&nbsp;Vcc single-supply); signal in vs signal out.</p>
+    <details class="theory"><summary>The golden rules, virtual ground, and single-supply bias</summary><div>
+      <p>With negative <a class="term" data-term="g-feedback">feedback</a>, an ideal op-amp obeys two rules: <b>(1)</b> no current flows into the inputs, <b>(2)</b> the output does whatever it takes to make the two inputs equal. Everything about gain formulas falls out of these.</p>
+      <p>In an inverting stage the + input is grounded, so rule 2 forces the − input to 0&nbsp;V too — a <b><a class="term" data-term="g-virtual-ground">virtual ground</a></b>. A summing amp is many input resistors meeting at that virtual ground: each channel's current sums there without the channels loading each other. That's what a mix bus is.</p>
+      <p><b>Single-supply gear</b> (most cassette decks, battery mixers) has no negative rail, so the "zero" for audio is a bias point at ½&nbsp;Vcc, made by — a voltage divider. Coupling caps at every stage boundary keep this bias out of the <a class="term" data-term="g-pot">pots</a> and jacks. A wrong bias voltage (leaky cap, drifted divider) shifts the whole stage and <a class="term" data-term="g-clipping">clips</a> one side of the waveform first.</p>
+      <p><b>Distortion clues:</b> clipping both sides = level too hot or rails sagging; one side only = bias shifted; distortion only at low level that vanishes when loud = <a class="term" data-term="g-crossover-distortion">crossover distortion</a> in a push-pull output stage (bias current too low).</p>
+    </div></details>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">06.3</span>
+    <h3>Power supplies &amp; rail troubleshooting</h3>
+    <p>The linear supply chain — memorize the order and what lives at each node:</p>
+    <div class="eq" style="font-family:ui-monospace,monospace;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:13px">MAINS → fuse → transformer → <a class="term" data-term="g-rectifier">rectifier</a> → filter caps → <a class="term" data-term="g-regulator">regulator</a> → rail<br>&nbsp;&nbsp;230VAC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;low VAC&nbsp;&nbsp;&nbsp;&nbsp;pulsed DC&nbsp;&nbsp;&nbsp;DC + <a class="term" data-term="g-ripple">ripple</a>&nbsp;&nbsp;&nbsp;clean DC</div>
+    <p><b>Work backwards from the missing rail:</b></p>
+    <ol>
+      <li>Rail dead at the regulator output? Check regulator <b>input</b> — if input is good and output isn't, it's the regulator or an overload dragging it into shutdown (they current-limit and thermal-protect).</li>
+      <li>No DC at the filter caps? Check AC at the transformer secondary.</li>
+      <li>No secondary AC? Fuse, primary continuity, <a class="term" data-term="g-thermal-fuse">thermal fuse</a> in the transformer.</li>
+    </ol>
+    <h4>Failure signatures</h4>
+    <ul>
+      <li><b>Hum/buzz at 100/120 Hz</b> in the audio → filter caps dried out (verify: AC ripple across the cap).</li>
+      <li><b>Fuse blows instantly</b> → short: rectifier diodes first, then filter caps, then output devices.</li>
+      <li><b>One rail of a ± pair missing</b> → its regulator/rectifier half; symptoms downstream look bizarre (op-amps half-work, outputs sit at DC).</li>
+      <li><b>Everything slightly low + regulator hot</b> → downstream overload. Divide the load: lift feeds one at a time.</li>
+    </ul>
+    <details class="theory"><summary>Rectification &amp; ripple math</summary><div>
+      <p>A <a class="term" data-term="g-bridge-rectifier">bridge rectifier</a> flips the negative half-cycles up, giving pulsed DC at 2× mains frequency — hence 100/120&nbsp;Hz ripple. Filter caps charge on the peaks and carry the load between them; ripple voltage is roughly V<sub>ripple</sub> ≈ I / (2fC). Bigger load current or smaller (dried) capacitance → more ripple. The DC across the cap sits near the AC peak: V<sub>DC</sub> ≈ V<sub>AC(<a class="term" data-term="g-rms">RMS</a>)</sub> × 1.414, minus diode drops — so a "12 V" winding makes ~16&nbsp;V of raw DC. That <a class="term" data-term="g-headroom">headroom</a> is what the regulator burns off (as heat) to hold its output steady.</p>
+    </div></details>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">06.4</span>
+    <h3>Pots, faders, switches &amp; jacks</h3>
+    <h4>Potentiometers</h4>
+    <ul>
+      <li><b>Taper:</b> modern convention <code>A</code> = audio/log (volume), <code>B</code> = linear (tone, pan). Vintage gear sometimes used other letter schemes — verify by measuring: at half rotation a log pot reads ~10–20% of total, linear reads ~50%.</li>
+      <li><b>Scratchy pot</b> = dirty element, worn element, or DC on the <a class="term" data-term="g-wiper">wiper</a> from a leaky upstream coupling cap. If cleaning fixes it briefly and it returns fast, check for DC before blaming the pot.</li>
+      <li><b>Dual-gang</b> pots (stereo volume): channels tracking differently at low volume is normal-ish on cheap pots; one channel dead is a broken wiper or joint.</li>
+      <li>Mechanical faults (wobbly shaft, axial play like the PMD720 CH3 gain pot) are body/bracket problems — cleaning won't help; resolder the frame tabs or replace.</li>
+    </ul>
+    <h4>Slide switches</h4>
+    <p>The era's weak point. Every actuation levers the pins against their solder joints → <b>ring cracks</b>. Symptom: function cuts in/out with switch pressure or position. Fix: <a class="term" data-term="g-reflow">reflow</a> every pin with fresh solder, then DeoxIT the contacts. (Prime suspect on the EM-80 channel 2.)</p>
+    <h4>Jacks</h4>
+    <ul>
+      <li><b>TS</b> = tip/sleeve (mono). <b>TRS</b> = tip/ring/sleeve (stereo or <a class="term" data-term="g-balanced">balanced</a>). <b>RCA</b> = center/shell.</li>
+      <li>Many jacks have <b>switching contacts</b>: inserting a plug breaks a normal connection (headphone jacks muting speakers, patchbay normals, <a class="term" data-term="g-insert-point">insert points</a>). A bent switching contact silently breaks the normal path — the unit "fails" with nothing plugged in.</li>
+      <li>Spread tip-contact springs (the ART P48 fault) make a jack that only works with a plug partially inserted. Retension gently with a hook tool, or replace the jack (Neutrik NYS-series / Switchcraft equivalents).</li>
+      <li>Jack solder joints carry all the cable strain — reflow is the first move on any flaky jack.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="tag meas">06.5</span>
+    <h3>Tape transports &amp; mechanics</h3>
+    <h4>The cast</h4>
+    <ul>
+      <li><b>Capstan + <a class="term" data-term="g-pinch-roller">pinch roller</a></b> — the precision shaft and rubber wheel that actually pull tape at 4.76&nbsp;cm/s. Speed accuracy and wow/<a class="term" data-term="g-flutter">flutter</a> live here.</li>
+      <li><b>Heads</b> — erase, then record/play, in tape-travel order.</li>
+      <li><b>Reel tables, <a class="term" data-term="g-idler">idlers</a>, clutches</b> — take-up torque and fast-wind drive.</li>
+      <li><b>Belts</b> — motor → flywheel, motor → reel drive.</li>
+      <li><b>Mode mechanism &amp; <a class="term" data-term="g-leaf-switch">leaf switches</a></b> — the cam/gear logic that moves heads and engages functions.</li>
+      <li><b>Sensors</b> — end-of-tape (photo reflectors like the NJL5165K type) and rotation sensors that trigger auto-stop.</li>
+    </ul>
+    <h4>Symptom → suspect</h4>
+    <table>
+      <tr><th>Symptom</th><th>Look at</th></tr>
+      <tr><td>Wow (slow pitch waver)</td><td>Belt (stretched), pinch roller, <a class="term" data-term="g-capstan">capstan</a> bearing dry</td></tr>
+      <tr><td>Flutter (fast warble)</td><td>Dirty/glazed pinch roller, capstan gunk, idler</td></tr>
+      <tr><td>Auto-stops mid-play</td><td>Reel rotation sensor, take-up torque (idler/clutch), contaminated photo sensor</td></tr>
+      <tr><td>Eats tape</td><td>No take-up torque (idler/clutch/belt) while capstan keeps feeding</td></tr>
+      <tr><td>Muffled, dull audio</td><td>Dirty heads first; then azimuth; then worn heads</td></tr>
+      <tr><td>One function won't engage</td><td>Mode mechanism: cracked gear, jumped cam timing, dry pivot, leaf switch</td></tr>
+      <tr><td>Runs fast/slow steadily</td><td>Motor speed (many have an adjust pot — reference tape needed), wrong belt</td></tr>
+    </table>
+    <h4>Maintenance order</h4>
+    <ol>
+      <li>Heads, capstan, guides: 99% IPA, cotton swab, until swabs come away clean.</li>
+      <li>Pinch roller: rubber cleaner/restorer (Rubber Renue 408C), not soaked in IPA.</li>
+      <li>Inspect &amp; replace rubber (belts, idlers) before chasing electrical ghosts — bad rubber mimics everything.</li>
+      <li>Photo sensors: clean of grease film before condemning the auto-stop logic.</li>
+      <li>Lubricate pivots/axles only; <b>gear teeth dry</b> (SEC 05).</li>
+      <li>Demagnetize heads occasionally: demagnetizer on, approach slowly, circle, withdraw slowly to arm's length, then off. Deck unpowered, tapes far away.</li>
+    </ol>
+    <h4>Azimuth — handle with care</h4>
+    <p>The play head's tilt vs the tape. Error kills treble and mono-compatibility. The screw is spring-loaded next to the head — <b>don't touch it without a reference</b> (alignment tape, or peak HF by ear on a known-good commercial tape as a last resort, marking the original position first). "Adjusting azimuth" to fix one badly-recorded tape misaligns the deck for every other tape.</p>
+  </div>
+
+  </div>
+</section>
+
+<!-- ============ SEC 07 CALCULATORS ============ -->
+<section class="sec" id="s7">
+  <div class="sec-head"><span class="num">SEC 07</span><h2>Calculators</h2></div>
+  <p class="sec-sub">Live tools. Resistance inputs accept suffixes: <code>4.7k</code>, <code>2M</code>, <code>330</code>. Capacitance accepts <code>100n</code>, <code>4.7u</code>, <code>220p</code>.</p>
+  <div class="cards">
+
+  <div class="calc card" id="calcRes">
+    <h3>Resistor color code</h3>
+    <div class="seg">
+      <button id="b4" class="on" onclick="setBands(4)">4-BAND</button>
+      <button id="b5" onclick="setBands(5)">5-BAND</button>
+    </div>
+    <svg id="resSvg" viewBox="0 0 300 70">
+      <path d="M10 35 h40 M250 35 h40" stroke="var(--mut)" stroke-width="4"/>
+      <rect x="50" y="15" width="200" height="40" rx="16" fill="#d8c49a" stroke="var(--line2)"/>
+      <rect id="rb0" x="72"  y="15" width="16" height="40" fill="#8B4513"/>
+      <rect id="rb1" x="104" y="15" width="16" height="40" fill="#000"/>
+      <rect id="rb2" x="136" y="15" width="16" height="40" fill="#f00"/>
+      <rect id="rb3" x="168" y="15" width="16" height="40" fill="#f00" style="display:none"/>
+      <rect id="rbT" x="212" y="15" width="16" height="40" fill="#C9A227"/>
+    </svg>
+    <div class="row">
+      <div><label>Band 1</label><select id="rs0"></select></div>
+      <div><label>Band 2</label><select id="rs1"></select></div>
+      <div id="d3w" style="display:none"><label>Band 3</label><select id="rs2"></select></div>
+    </div>
+    <div class="row">
+      <div><label>Multiplier</label><select id="rsM"></select></div>
+      <div><label>Tolerance</label><select id="rsT"></select></div>
+    </div>
+    <div class="out" id="resOut">1.0 kΩ ±5%</div>
+  </div>
+
+  <div class="calc card" id="calcOhm">
+    <h3>Ohm's law</h3>
+    <p style="color:var(--mut);font-size:13px;margin:0 0 4px">Fill any two, leave the third blank.</p>
+    <div class="row">
+      <div><label>Voltage (V)</label><input type="text" id="ohmV" inputmode="decimal"></div>
+      <div><label>Current (A)</label><input type="text" id="ohmI" inputmode="decimal"></div>
+    </div>
+    <label>Resistance (Ω — accepts k/M)</label><input type="text" id="ohmR">
+    <div class="btns"><button onclick="solveOhm()">SOLVE</button><button class="ghost" onclick="clearOhm()">CLEAR</button></div>
+    <div class="out" id="ohmOut">—</div>
+  </div>
+
+  <div class="calc card" id="calcCap">
+    <h3>Capacitor code</h3>
+    <label>Code on part (e.g. 104, 473, 4n7, 2u2)</label>
+    <input type="text" id="capCode" placeholder="104">
+    <label>Tolerance letter (optional)</label>
+    <select id="capTol">
+      <option value="">—</option><option value="±1%">F</option><option value="±2%">G</option>
+      <option value="±5%">J</option><option value="±10%">K</option><option value="±20%">M</option>
+      <option value="+80/−20%">Z</option>
+    </select>
+    <div class="out" id="capOut">100 nF &nbsp;=&nbsp; 0.1 µF &nbsp;=&nbsp; 100,000 pF</div>
+  </div>
+
+  <div class="calc card" id="calcDiv">
+    <h3>Voltage divider</h3>
+    <div class="row">
+      <div><label>Vin (V)</label><input type="text" id="dvV" inputmode="decimal"></div>
+      <div><label>R1 (top)</label><input type="text" id="dvR1" placeholder="10k"></div>
+      <div><label>R2 (bottom)</label><input type="text" id="dvR2" placeholder="4.7k"></div>
+    </div>
+    <div class="out" id="divOut">Vout = —</div>
+  </div>
+
+  <div class="calc card" id="calcRC">
+    <h3>RC filter cutoff</h3>
+    <p style="color:var(--mut);font-size:13px;margin:0 0 4px">fc = 1 / (2πRC) — <a class="term" data-term="g-coupling-cap">coupling caps</a> + input <a class="term" data-term="g-impedance">impedance</a> form exactly this.</p>
+    <div class="row">
+      <div><label>R (Ω, k, M)</label><input type="text" id="rcR" placeholder="10k"></div>
+      <div><label>C (p, n, u)</label><input type="text" id="rcC" placeholder="1u"></div>
+    </div>
+    <div class="out" id="rcOut">fc = —</div>
+  </div>
+
+  <div class="calc card" id="calcDb">
+    <h3>Decibels ↔ voltage</h3>
+    <div class="row">
+      <div><label>Voltage ratio (V1/V2)</label><input type="text" id="dbRatio" inputmode="decimal"></div>
+      <div><label>or dB</label><input type="text" id="dbVal" inputmode="decimal"></div>
+    </div>
+    <div class="out" id="dbOut">—</div>
+    <table style="margin-top:12px">
+      <tr><th>Level</th><th>Voltage</th></tr>
+      <tr><td>0 dBV</td><td>1.000 V</td></tr>
+      <tr><td>0 dBu</td><td>0.775 V</td></tr>
+      <tr><td>+4 dBu (pro)</td><td>1.228 V</td></tr>
+      <tr><td>−10 dBV (consumer)</td><td>0.316 V</td></tr>
+    </table>
+  </div>
+
+  </div>
+</section>
+<!-- ============ SEC 08 GLOSSARY ============ -->
+<section class="sec" id="s8">
+  <div class="sec-head"><span class="num">SEC 08</span><h2>Glossary</h2></div>
+  <p class="sec-sub">The vocabulary of the bench. Searchable like everything else.</p>
+  <div class="gloss" id="glossList">
+    <div class="g-item" id="g-ac-coupling"><b>AC coupling</b><span>Passing signal through a series cap so DC bias doesn't follow it.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>AC coupling</b> means putting a capacitor in series with the signal so only the changing (audio) part gets through while any steady DC offset is blocked. Every stage in a piece of gear sits at its own DC operating point — one op-amp output might idle at 0&nbsp;V, the next input might expect to be biased at half-rail. Without a series cap, that DC would fight between stages, shift bias points, and often push a stage into <a class="term" data-term="g-clipping">clipping</a>. The cap lets each stage keep its own <a class="term" data-term="g-bias-electronic">bias</a> undisturbed.</p>
+<p>At the bench, AC coupling caps are the usual suspects when a channel is dead or thin but the DC checks out — a leaky or open coupling cap kills the signal or rolls off the bottom end. The cap plus the following stage's input impedance forms a high-pass filter, so an undersized or degraded cap audibly thins the bass. See <a class="xref" href="#s2">SEC 02</a> for cap types and the <a class="term" data-term="g-coupling-cap">coupling capacitor</a> entry for testing.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-attenuator"><b>Attenuator / pad</b><span>Resistor network that reduces signal level by a fixed amount.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>An <b>attenuator</b> (or <b>pad</b>) is a small resistor network that drops signal level by a fixed, known amount — commonly expressed in dB, like a <b>-20&nbsp;dB</b> pad on a mic input. It's used when a source is simply too hot for the next stage: a line-level signal into a mic pre, or a loud synth into a channel that would otherwise clip. Unlike a volume pot, the attenuation is fixed and (in a properly designed pad) preserves the impedance the driving stage expects to see.</p>
+<p>Common forms are the <b>L-pad</b> (series + shunt resistor, two resistors), and the balanced <b>T</b> and <b>H</b> pads used in pro audio. At the bench they rarely fail on their own since they're just resistors, but check them when a channel is unexpectedly quiet by a suspiciously round number of dB — a wrong-value or damaged pad resistor, or a switch pad stuck engaged, is usually the cause. The calculators section can work out pad resistor values from a target dB drop.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-azimuth"><b>Azimuth</b><span>Tilt of a tape head relative to the tape; error costs treble.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Azimuth</b> is the angle of the head's gap relative to the direction of tape travel. Ideally the gap is exactly perpendicular (90°) to the tape's path. When it's tilted even slightly, the high-frequency content reaching the two stereo channels arrives fractionally out of step, and those out-of-phase highs partially cancel — the sound goes progressively dull, and collapsing it to mono makes the treble drop out entirely (a quick azimuth test).</p>
+        <p>It matters most at short wavelengths, which is why <b>treble and "air" (8–20&nbsp;kHz) are the first things lost</b>; bass is barely affected. A small spring-loaded screw beside the play head sets the angle.</p>
+        <p><b>Handle with care:</b> don't touch that screw without a reference. Use an alignment tape and meter, or — as a last resort — peak the HF by ear on a <i>known-good commercial</i> tape, and mark the original position first so you can return to it. "Adjusting azimuth" to rescue one badly-recorded tape simply misaligns the deck for every other tape you own. Restoration context in <a class="xref" href="#s6">SEC 06.5</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-balanced"><b>Balanced</b><span>Two signal conductors carrying opposite-polarity copies + shield; noise picked up equally cancels at the input. XLR and TRS.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>balanced</b> connection carries the audio on <i>two</i> conductors — often called hot and cold, or + and - — holding equal and opposite copies of the signal, plus a separate shield. The receiving input is a <b>differential</b> stage that responds only to the <i>difference</i> between the two lines. Any noise (hum, RF) picked up along the run lands on both conductors almost identically, so when the input subtracts one from the other, that common noise cancels out. This is why balanced runs can go tens of meters without picking up hum, while unbalanced cables can't.</p>
+<p>You'll see balanced on <b>XLR</b> (pin 1 shield, pin 2 hot, pin 3 cold — AES standard) and on <b>TRS</b> (tip hot, ring cold, sleeve shield). At the bench, hum on a balanced input usually means the balance is broken: a cracked solder joint on pin 3, a shorted conductor, or one leg open — the noise no longer arrives equally on both lines so it stops canceling. See <a class="xref" href="#s6">SEC 06.4</a> for jack and connector wiring.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-bias-electronic"><b>Bias (electronic)</b><span>The DC operating point set so a stage can swing the signal both ways without clipping.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Bias</b> is the steady DC operating point a stage is deliberately set to sit at when no signal is present, so the incoming audio can swing <i>both</i> up and down from that point without hitting a wall. A transistor biased near cutoff can only swing one way before it turns off and clips; biased in the middle of its usable range, it has headroom in both directions. In a single-supply op-amp stage the bias point is usually set to half the supply voltage for exactly this reason.</p>
+<p>Wrong bias shows up as asymmetric <a class="term" data-term="g-clipping">clipping</a> (one side of the waveform flattens first), distortion at low levels, or a stage that runs hot. At the bench you check bias by measuring DC voltages at the transistor's terminals or the op-amp's output and comparing to the schematic's marked voltages — a drifted bias resistor, leaky transistor, or aged coupling cap feeding DC into the base are common causes. Not to be confused with <a class="term" data-term="g-bias-tape">tape bias</a>, which is a completely different thing.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-bias-tape"><b>Bias (tape)</b><span>Ultrasonic signal mixed into the record head to linearize magnetic tape; wrong bias = dull or distorted recordings.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Tape bias</b> is a high-frequency signal — typically well above audio, often in the <b>60&#8211;150&nbsp;kHz</b> range depending on the deck — that's mixed with the audio and fed to the record head during recording. Magnetic tape is badly nonlinear at low signal levels: without help, quiet passages record with heavy distortion. The ultrasonic bias keeps the tape's magnetic particles constantly agitated so the audio rides on the linear part of the tape's response. You never hear the bias itself; it's far above hearing and filtered out on playback.</p>
+<p>Bias level must be matched to the tape formulation (Type&nbsp;I ferric, Type&nbsp;II chrome, Type&nbsp;IV metal all want different amounts), which is what the tape-type switch or auto-detect notches on the shell select. <i>Too little</i> bias gives distortion, noise, and boosted-but-nasty highs; <i>too much</i> bias dulls the top end and reduces output. At the bench, bias is set with a test tape and a level meter, adjusting the bias trimmer for the specified high-frequency output — see <a class="xref" href="#s6">SEC 06.5</a> for tape-path alignment.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-bridge-rectifier"><b>Bridge rectifier</b><span>Four diodes converting AC to pulsed DC using both half-cycles.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>bridge rectifier</b> is four diodes arranged so that <i>both</i> halves of the incoming AC waveform are steered the same direction into the DC output — the negative half-cycles get flipped up rather than thrown away. This <b>full-wave</b> approach gives roughly twice the ripple frequency (100 or 120&nbsp;Hz from 50/60&nbsp;Hz mains) and a smoother, easier-to-filter output than a single-diode half-wave supply. It's the standard front end of nearly every linear power supply in audio gear.</p>
+<p>It comes either as four discrete diodes (often <code>1N400x</code> types) or a single four-legged block marked with <b>~ ~ + -</b> for the two AC ins and the DC outs. At the bench, one failed diode in the bridge is a classic fault: it typically causes loud hum on the rails (the supply reverts to half-wave), a blown fuse, or an overheating transformer. Test each diode in-circuit with the diode range of a meter, looking for one that's open or shorted. See <a class="xref" href="#s6">SEC 06.3</a> for the full power-supply chain.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-bus"><b>Bus</b><span>A common line multiple signals sum onto (mix bus, ground bus).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>bus</b> is a shared line that many signals are summed onto — the classic example is a mixer's <b>mix bus</b>, where every channel's send is tied together so their currents add up into one combined signal. The summing is usually done into the virtual-ground input of an op-amp (a <b>summing amp</b>), so each channel contributes without loading the others. The term also covers the <b>ground bus</b> (a common return line) and aux/group buses.</p>
+<p>Because a bus touches every channel, a fault on it affects <i>all</i> of them at once — that's a useful diagnostic clue. Noise, hum, or a dead mix on every channel points at the bus and its summing amp rather than any single channel strip. See <a class="xref" href="#s6">SEC 06.1</a> for how the bus sits in the signal path.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-capstan"><b>Capstan</b><span>Precision rotating shaft that sets tape speed, pinching tape against the roller.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>The <b>capstan</b> is the precision-ground rotating shaft that actually sets tape speed. The tape is pinched between the spinning capstan and a rubber <b>pinch roller</b>; the capstan pulls the tape past the heads at a constant rate while the takeup reel just gathers slack. Speed accuracy depends entirely on the capstan's diameter and its motor's regulation — this is why the capstan, not the reels, governs pitch and <b>wow &amp; flutter</b>.</p>
+<p>At the bench, a dirty or oily capstan shaft causes slipping and speed instability; a hardened or glazed pinch roller can't hold the tape against it, causing the tape to slow, wander, or spill. Clean the capstan with isopropyl and a swab, and replace pinch rollers that have gone shiny or flat-spotted. Speed problems that survive a good cleaning point to the capstan motor, its belt, or its servo. See <a class="xref" href="#s6">SEC 06.5</a> for the full transport.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-class"><b>Class A / AB / B</b><span>Output stage bias schemes; AB (both devices barely on at idle) is the audio norm — too little idle bias causes crossover distortion.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Class</b> describes how much an output stage's devices are biased on at idle, which trades efficiency against distortion. <b>Class&nbsp;A</b> keeps the device conducting over the whole waveform — cleanest but hot and inefficient, dissipating full power even at idle. <b>Class&nbsp;B</b> uses two devices, each handling one half of the waveform and fully off for the other half — efficient but the handoff between them is imperfect. <b>Class&nbsp;AB</b> is the audio workhorse: both devices are biased <i>barely</i> on at idle so there's always one conducting through the handoff region, getting Class&nbsp;B efficiency without the ugly seam.</p>
+<p>That idle bias is the whole game. Too little and you get <b>crossover distortion</b> — a notch of nonlinearity as the signal passes through zero, worst on quiet passages and audible as grit or fuzz. Too much and the output devices run hot and waste power. At the bench, this idle current is set by the <b>bias adjustment</b> (often a trimmer plus a thermal-tracking transistor on the heatsink); you set it per the service manual by measuring the small voltage across the emitter resistors with no signal. See <a class="xref" href="#s6">SEC 06.2</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-clipping"><b>Clipping</b><span>Waveform tops flattened because the stage ran out of rail voltage. Sounds harsh/fuzzy.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Clipping</b> is what happens when a stage is asked to output more voltage than its power rails can provide: the waveform tries to keep rising but simply flattens off at the rail, shearing the peaks into flat tops. Those flat tops are rich in odd harmonics, which is why clipping sounds harsh, fuzzy, or buzzy rather than just loud. <b>Hard clipping</b> gives sharp square-ish edges; a stage running out of headroom more gently is <i>soft clipping</i>.</p>
+<p>On a scope, clipping is unmistakable — sine-wave peaks squared off flat. At the bench, distinguish the two causes: if the flat top sits right at the supply rail, the stage is genuinely out of headroom (too much gain upstream, or a sagging rail). If it clips well below the rail, suspect a fault — a bad bias point, a failing device, or a sick supply. Asymmetric clipping (one side only) usually points at a <a class="term" data-term="g-bias-electronic">bias</a> problem. See <a class="xref" href="#s6">SEC 06.3</a> for rail voltages.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-cold-joint"><b>Cold joint</b><span>Solder joint that never wetted properly or cracked under stress; dull, grainy, often a ring crack. The #1 vintage-gear fault.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>cold joint</b> is a solder connection that never properly <i>wetted</i> — the solder didn't fully melt and flow onto both metal surfaces, so instead of a smooth bright fillet you get a dull, grainy, lumpy blob that's only mechanically touching, not metallurgically bonded. A related failure is the <b>ring crack</b>: a joint that was fine originally but cracked in a circle around a lead after years of thermal cycling or mechanical stress, especially on heavy parts like jacks, pots, and connectors. Either way the connection becomes intermittent or high-resistance.</p>
+<p>This is the <b>#1 fault in vintage gear</b> — decades of heat, vibration, and plug-insertion stress crack joints on anything that gets handled. Symptoms are classic intermittents: crackle when you wiggle a connector, a channel that drops out when the chassis is tapped, sound that comes and goes with temperature. Find them by inspecting under good light and magnification (dull ring around the lead), and by gently prodding suspect joints with an insulated tool while the unit plays. The fix is simply to <b>reflow</b> the joint with fresh solder and flux. See <a class="xref" href="#s5">SEC 05</a> for soldering technique.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-coupling-cap"><b>Coupling capacitor</b><span>Series cap between stages: passes audio, blocks DC.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>coupling capacitor</b> is a cap placed in series between two stages to pass the audio while blocking any DC offset — the practical implementation of <a class="term" data-term="g-ac-coupling">AC coupling</a>. It lets each stage sit at its own DC bias point without the previous stage's DC dragging it off, which is essential because those bias points are rarely the same. Together with the following stage's input impedance it also forms a high-pass filter, so its value sets how low the frequency response extends.</p>
+<p>These are prime failure parts, especially older electrolytics used for coupling. A <b>leaky</b> coupling cap passes DC it should block, shifting the next stage's bias and causing distortion or a thump; an <b>open</b> or dried-out one kills the signal entirely or thins the bass badly. At the bench, suspect coupling caps on channels that are dead-but-powered, distorted at low level, or bass-shy — check for DC on the downstream side that shouldn't be there, and don't hesitate to replace aging electrolytics with fresh film or electrolytic parts of the correct value and voltage. See <a class="xref" href="#s2">SEC 02</a> for cap selection.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-crossover-distortion"><b>Crossover distortion</b><span>Notch distortion at low levels from an under-biased push-pull output stage.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Crossover distortion</b> is a small kink in the waveform that appears each time the signal crosses zero volts. In a class-B or class-AB push-pull output stage, one transistor handles the positive half of the wave and the other handles the negative half. If those transistors aren't biased slightly <i>on</i> at idle, there's a dead band near zero where neither conducts — the signal has to climb past the ~0.6&nbsp;V base-emitter threshold before either device wakes up. The result is a notch or step right at the crossover point.</p>
+<p>At the bench it's most audible and most visible at <i>low</i> listening levels — the notch is a fixed size, so it's a large fraction of a small signal and negligible on a big one. On a scope driving a sine into a dummy load you'll see the flat step near the zero crossing; feed a triangle wave and the kink stands out even more clearly. The usual cause is under-bias: a drifted or open bias resistor, a failed <i>Vbe multiplier</i> transistor, or a bias pot that's been backed off. Set the idle (quiescent) bias current per the service manual before assuming an output device is bad. See <a class="xref" href="#s6">SEC 06.2</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-crosstalk"><b>Crosstalk</b><span>Signal leaking between channels or tracks.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Crosstalk</b> is unwanted signal from one channel or track appearing in another — left bleeding into right, or on a tape deck one track leaking into its neighbor. It's specified in <b>dB</b> below the wanted signal (more negative is better; -60&nbsp;dB is far quieter than -40&nbsp;dB), and it generally worsens with frequency because most of the coupling is capacitive.</p>
+<p>At the bench, common culprits are dirty or worn <i>ground returns</i>, shared grounds that should be separate, capacitive coupling between closely routed channel wiring, and — very often — leakage across a dirty or worn selector switch or fader. On tape gear, mechanical head misalignment (azimuth/height) and worn heads raise track crosstalk. To test, drive one channel with a tone, terminate the other's input, and measure what appears at the idle output. If cleaning the switch or fader (<a class="xref" href="#s6">SEC 06.4</a>) drops the bleed, you've found it.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-dc-offset"><b>DC offset</b><span>Unwanted DC at an output. At a speaker output, more than ~50–100 mV warrants investigation.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>DC offset</b> is unwanted direct voltage sitting on an output that should carry only AC audio. A perfect stage idles at 0&nbsp;V (or at the midpoint of a single-supply rail); real ones drift a little from mismatched transistors, leaky coupling caps, or a failing op-amp. At a power-amp speaker terminal, a few tens of millivolts is normal — <b>more than ~50-100&nbsp;mV</b> warrants investigation, and volts of offset means a fault that can push the cone hard against its stops and cook the voice coil. Many amps include a DC-detect protection relay for exactly this reason.</p>
+<p>Measure it with a DMM on DC volts across the speaker output, <i>no signal applied</i>, speaker disconnected. Large offset points at the output stage or its feedback network — check for a leaky driver transistor, an open feedback resistor, or a failed <i>DC servo</i> if the design uses one. Small offset that drifts with temperature is usually input-stage transistor mismatch. A leaky electrolytic coupling cap can also inject offset downstream, so don't overlook a bad cap upstream of the point you're measuring.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-decoupling"><b>Decoupling / bypass cap</b><span>Cap from supply rail to ground; keeps the rail quiet and stable at each stage.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>decoupling</b> (or <b>bypass</b>) cap sits from a supply rail to ground, right at the pins of an IC or the supply node of a stage. Its job is to be a <i>local reservoir</i> of charge: when the stage suddenly draws current, the cap supplies it instantly instead of forcing that demand back down the inductance of the supply wiring, which would make the rail sag and ring. It also shorts high-frequency noise on the rail to ground, keeping the supply quiet where each stage actually uses it.</p>
+<p>You'll usually see two working together — a small ceramic (often <code>100nF</code>) placed as physically close to the IC as possible for fast, high-frequency transients, and a larger electrolytic nearby for lower-frequency bulk demand. When a decoupling cap fails or dries out, symptoms include motorboating (a low <i>put-put</i> oscillation), hum, crosstalk between stages sharing the rail, or outright instability. On old boards the electrolytic bypass caps are prime re-cap candidates; the ceramics rarely fail. See <a class="xref" href="#s6">SEC 06.3</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-dim-bulb"><b>Dim-bulb tester</b><span>Incandescent bulb in series with mains; limits current on first power-up after repairing a short. Bulb glows bright = still shorted.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>dim-bulb tester</b> is an ordinary incandescent bulb wired <i>in series</i> with the mains feeding the unit under test — the safest way to first power up gear after repairing a short or replacing power-supply parts. The bulb's filament acts as a self-adjusting current limiter: if the device draws too much, the bulb drops most of the voltage and glows bright, protecting your freshly soldered work (and you) from a full-current fault. Pick a bulb roughly matched to the load — say 60-100&nbsp;W for typical audio gear.</p>
+<p>Reading it is simple. On power-up the bulb flashes bright as reservoir caps charge, then should <b>dim to a faint glow or go dark</b> once the unit settles into its idle draw — that's a healthy supply. A bulb that stays <i>bright</i> means the device is still pulling heavy current: a shorted rectifier, shorted output transistor, a reversed or shorted new cap, or a dead short across a rail. Note that LED and CFL bulbs won't work here — you need an old-school resistive incandescent filament.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-dropout-regulator"><b>Dropout (regulator)</b><span>Minimum input-output voltage difference a regulator needs to regulate (~2 V for 78xx).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Dropout</b> is the minimum voltage a linear regulator needs across itself — input minus output — to keep regulating. Fall below it and the regulator stops holding the output steady; the output just follows the input down, ripple and all. A classic <code>78xx</code> series regulator needs roughly <b>2&nbsp;V</b> of headroom, so a <code>7805</code> wants at least ~7&nbsp;V in to reliably produce a clean 5&nbsp;V out. <i>Low-dropout (LDO)</i> types get by on a few hundred millivolts or less.</p>
+<p>At the bench this bites when a transformer runs low (low mains, or a design with thin margins), or when ripple on the input dips into the dropout region at the bottom of each cycle — you'll see the regulated rail carrying ripple it shouldn't. Check it by measuring input and output under load with a scope: if the input's ripple troughs come within ~2&nbsp;V of the output, you're grazing dropout. The fix is more input voltage or a bigger reservoir cap, not a bigger regulator. See <a class="xref" href="#s6">SEC 06.3</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-dropout-tape"><b>Dropout (tape)</b><span>Momentary signal loss from tape defect or dirty head.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A tape <b>dropout</b> is a brief loss of signal during playback — a momentary dip or silence rather than a steady problem. It usually comes from a physical defect on the tape (a spot where the magnetic oxide is thin, shed, or creased) or from the tape momentarily losing intimate contact with the head. A dirty head, or debris riding between head and tape, causes the same effect by lifting the tape away from the gap. Even a tiny gap between oxide and head kills high frequencies first, so dropouts often sound like a quick dulling as much as a level drop.</p>
+<p>Before blaming the tape, clean the heads, capstan, and guides and try another known-good tape — if the dropouts vanish, it was dirt or that one tape's oxide. Persistent dropouts on many tapes point to a worn or pitted head, or a transport not holding proper tape tension and head contact. See <a class="xref" href="#s6">SEC 06.5</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-electrolyte"><b>Electrolyte</b><span>The wet chemistry inside electrolytic caps; it dries out with age and heat.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Electrolyte</b> is the conductive wet paste or fluid inside an aluminum electrolytic capacitor — it forms one of the capacitor's plates and maintains the thin oxide insulating layer that gives the part its capacitance. Because it's a liquid chemistry sealed behind a rubber bung, it's the part that ages: heat drives the electrolyte out through the seal over years, the cap dries, and its capacitance falls while its <i>ESR</i> (equivalent series resistance) climbs. That's why electrolytics are the usual re-cap targets in vintage gear and why parts near hot components fail first.</p>
+<p>Failure shows up as hum, motorboating, weak or drifting rails, or intermittent audio. Visually, look for a domed vent on top, crusty residue around the base, or leaked electrolyte staining the board — leaked electrolyte can be mildly corrosive and should be cleaned off. The catch is that a dried cap often looks perfectly fine, so measure ESR and capacitance in circuit or pull suspects; don't trust appearance alone. See <a class="xref" href="#s2">SEC 02</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-esd"><b>ESD</b><span>Electrostatic discharge — your body zapping a MOS gate. Ground yourself first.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>ESD</b> — electrostatic discharge — is the tiny lightning bolt that jumps from your charged body to a component when you touch it. You can build up thousands of volts just walking across a carpet without feeling a thing, yet that's more than enough to punch through the microscopically thin gate insulation of a MOSFET or CMOS chip. The damage is often <i>latent</i>: the part seems to work, then fails weeks later, which makes ESD kills maddening to diagnose.</p>
+<p>Prevention is cheap and worth the habit: wear a grounded wrist strap, work on an anti-static mat, handle MOS-input parts by the body not the pins, and keep sensitive ICs in conductive foam until fitted. Ground yourself to the chassis before reaching in. Bipolar transistors and most passive parts shrug off ESD; it's FETs, CMOS logic, and MOS-input op-amps that need the care.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-esr"><b>ESR</b><span>Equivalent series resistance of a cap; rises as it ages. DMM capacitance mode can't see it.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A real capacitor isn't ideal. In series with its capacitance sits a small unavoidable resistance — from the foil, the leads, and (in electrolytics) the wet electrolyte. That's the <b>equivalent series resistance</b>. A healthy electrolytic has an ESR of milliohms to about an ohm; a small film or ceramic, essentially nothing.</p>
+        <p>As an electrolytic ages — driven by heat and the electrolyte slowly drying out — its <b>ESR climbs</b> to many ohms while its measured capacitance can still read close to normal. This is the trap: a DMM's capacitance mode reports µF only and sees nothing of ESR, so a dried-out cap reads "fine" and lies to you.</p>
+        <p>High ESR means the cap can no longer source or sink current quickly. In a power supply it stops smoothing, leaving <b>100/120&nbsp;Hz ripple and hum</b> on the rail; in the signal path it adds loss and weakens output. The only trustworthy checks are a dedicated <b>ESR meter</b> (measures in-circuit, at low voltage) or <b>substitution</b> — tack a known-good cap in and listen. Supply dry-out and ripple failure signatures: <a class="xref" href="#s6">SEC 06.3</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-eutectic"><b>Eutectic</b><span>An alloy that melts/freezes at one exact temperature (63/37 solder, 183 °C) — no plastic phase, fewer disturbed joints.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Eutectic</b> describes an alloy with one special mixing ratio that melts and freezes at a single sharp temperature, with no soft mushy stage in between. For lead-tin solder that ratio is <b>63/37</b> (63% tin, 37% lead), which goes straight from solid to liquid at <b>183&nbsp;°C</b>. Off-ratio blends like 60/40 have a <i>plastic range</i> — a few degrees where they're partly slushy on the way to setting.</p>
+<p>At the bench the eutectic mix is worth seeking out because a joint that snaps solid all at once is far less likely to be disturbed while it freezes — that's exactly how you get a grainy, dull <i>cold joint</i>. It also gives a clean, shiny fillet and reflows crisply, which makes rework faster. Note that lead-free solders melt hotter (around 217-227&nbsp;°C) and generally lack this clean single-point behavior. See <a class="xref" href="#s5">SEC 05</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-feedback"><b>Feedback (negative)</b><span>Returning inverted output to the input; trades raw gain for accuracy, flatness, and low distortion. How op-amp stages set gain.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Negative feedback</b> takes a portion of a stage's output, inverts it, and feeds it back to the input so it subtracts from the incoming signal. The stage then corrects its own errors: anything the output does that the input didn't ask for — distortion, gain drift, frequency-response bumps — gets fed back as an opposing correction. You trade away raw open-loop gain (of which an op-amp has an enormous, imprecise excess) in exchange for accuracy, flat response, low distortion, and stable, predictable gain.</p>
+<p>This is how op-amp stages set their gain: two resistors form the feedback network, and the closed-loop gain is fixed by their ratio rather than by the wildly variable gain of the chip itself. For the common non-inverting stage:</p>
+<div class="eq">Gain = 1 + Rf / Rg</div>
+<p>At the bench, feedback faults are worth knowing: an <i>open</i> feedback resistor sends gain to maximum and the output slams to a rail, while too much phase shift in the loop (a marginal design, a wrong cap value, or a mis-stuffed part) turns the correction positive at some frequency and the stage oscillates. See <a class="xref" href="#s6">SEC 06.2</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-flutter"><b>Flutter</b><span>Fast tape-speed variation; warbling sound. See wow.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Flutter</b> is fast, short-term variation in tape speed — the rapid cousin of <a class="term" data-term="g-wow">wow</a>. Where wow is a slow pitch sag you hear on sustained notes, flutter is quicker wavering, typically above a few hertz, that gives sustained tones a rough, warbling or grainy edge. The two are usually measured together as a single <i>wow &amp; flutter</i> percentage; lower is better.</p>
+<p>Flutter comes from small, quick speed disturbances in the transport: a dirty or worn capstan or pinch roller, a glazed or stretched drive belt, dry or worn bearings, or debris causing uneven tape drag. Clean the capstan and pinch roller and inspect the belt first, since those are cheap and account for most cases. If it persists, look at bearing wear and tension problems in the tape path. See <a class="xref" href="#s6">SEC 06.5</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-flux"><b>Flux</b><span>Chemical that strips oxide so solder wets metal. Clean residue with IPA.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Flux</b> is a mild acid that cleans oxide and tarnish off metal at soldering temperature so molten solder can <i>wet</i> the surface and flow into a proper joint. Rosin-cored solder carries its own flux in the middle of the wire, which is why fresh joints usually go smoothly; but on old, oxidized pads or when reflowing an existing joint, adding extra flux from a pen or paste is what turns a dull ball into a clean, shiny fillet.</p>
+<p>The type matters at the bench. <b>Rosin (RA/RMA)</b> and <b>no-clean</b> are the safe defaults for electronics. Avoid <i>acid/plumber's flux</i> entirely — it stays active and corrodes traces over time. Even benign residue should come off: it's mildly conductive when contaminated and it attracts grime, so scrub joints with IPA and a brush once you're done. On high-impedance nodes (op-amp inputs, phono stages) leftover residue can cause leakage and noise, so cleaning there isn't cosmetic.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-ground-loop"><b>Ground loop</b><span>Two ground paths forming a loop that picks up mains hum. Fix the grounding scheme, never the safety earth.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>ground loop</b> happens when a piece of gear reaches ground through two or more paths at once — say, its own mains earth <i>and</i> the shield of a signal cable to another earthed unit. Those two paths enclose a physical loop of wire, and any stray magnetic field (mostly the 50/60&nbsp;Hz from nearby transformers and mains wiring) induces a small current in it. That current develops a voltage across the shield resistance, which rides into the signal as <b>hum</b> and its harmonics — the classic buzzy background whine that gets worse when you touch chassis or move cables.</p>
+<p>At the bench you identify it by exclusion: the hum appears only when two units are connected together and both are earthed, and lifting one signal connection or unplugging one unit kills it. Fixes address the <i>loop</i>, not the safety earth — use balanced connections, ground-lift the shield at one end of an interconnect, or star-ground internal circuit grounds to a single point. <i>Never</i> defeat the mains protective earth (the classic "cheater plug") to chase hum; that trades a nuisance for a shock hazard. See jacks and grounding in <a class="xref" href="#s6">SEC 06.4</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-headroom"><b>Headroom</b><span>Margin between operating level and clipping.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Headroom</b> is the gap, in dB, between the level a stage <i>normally</i> runs at and the level where it starts to clip. If a mixer's nominal operating level is around 0&nbsp;dBu and the electronics clip near +20&nbsp;dBu, you have roughly 20&nbsp;dB of headroom — 20&nbsp;dB of transient peaks the circuit can pass cleanly before it distorts. Music is full of short peaks well above its average level, so headroom is what keeps drum hits and vocal consonants from turning to grit.</p>
+<p>It matters at the bench because low headroom is often a <i>fault</i>, not a design choice. A sagging or wrong supply rail lowers the clipping ceiling directly (an op-amp can't swing past its rails), so a stage that distorts on peaks may really have a tired regulator or dried filter cap starving it. <a class="xref" href="#s6">SEC 06.3</a>. Confirm by scoping the output while feeding a rising sine — clean peaks that flat-top on top and bottom mean you've hit the rails, and the rail voltage tells you the true ceiling.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-heat-sink"><b>Heat sink</b><span>Metal that carries heat away from a device; regulators and output transistors need theirs, with intact insulators and thermal paste.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>heat sink</b> is a chunk of metal (usually finned aluminum) bolted to a hot semiconductor to spread its heat into the air. Voltage regulators, power transistors, and output devices dump watts that would cook them in seconds unbonded, so the sink buys thermal mass and surface area. The path only works if every interface in it is good: the device-to-sink joint needs a thin, even film of <b>thermal paste</b> to fill microscopic air gaps, and the sink-to-air path needs clean, unobstructed fins.</p>
+<p>Where a device must be electrically isolated from a grounded sink, an <b>insulator</b> sits between them — a mica, silicone, or ceramic pad, often with an insulating shoulder washer around the screw. This is a top failure point in old gear: pads crack or the paste dries to powder, thermal resistance climbs, and the device runs hot and eventually fails. When you replace an output transistor or regulator, <i>always</i> renew the paste and check the insulator, and before powering up confirm with a meter that the tab is isolated from the sink where it's supposed to be — a pinched or missing washer shorts the tab (often the collector) straight to chassis.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-hfe"><b>hFE / beta</b><span>BJT current gain — collector current per unit of base current.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>hFE</b> (also written <b>β</b>, "beta") is a bipolar transistor's DC current gain: the ratio of collector current to base current, <b>I<sub>C</sub> / I<sub>B</sub></b>. A small-signal type might have a beta of 100–500, meaning a tiny base current controls a collector current a few hundred times larger — that multiplication is the whole point of the device. Beta is <i>not</i> a tight spec; it varies widely between samples of the same part number, drifts with temperature and current, which is why good circuits are designed so their operating point barely depends on it.</p>
+<p>At the bench, most cheap multimeters have an <b>hFE</b> socket that gives a rough reading and, more usefully, tells you the device is alive and roughly the right gain. A component tester (the "TC1"-style units) does the same and identifies pinout. A transistor reading near zero gain, or wildly asymmetric between forward and reverse, is suspect — though in-circuit readings lie, so pull the part or at least lift a leg before trusting a measurement.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-idler"><b>Idler</b><span>Rubber-tired intermediate wheel transferring drive between motor and reel tables.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>An <b>idler</b> is a rubber-tired wheel that sits between two rotating parts to transfer drive without a belt — classically coupling a motor spindle to a reel table or turntable platter rim. The rubber tire grips both surfaces by friction, so it needs to be pliable and clean to work. It's most familiar from idler-drive turntables, but the same wheels turn up in cassette and open-reel transports for fast-wind and reel drive.</p>
+<p>Idlers fail the way all transport rubber does: the tire hardens, glazes, or goes gummy with age, and the wheel then slips or transmits motor vibration as <b>rumble</b> and speed unsteadiness. Flat spots form if the machine sat with the idler engaged. The fix is cleaning the tire and mating surfaces with IPA, or replacing/re-tiring the wheel — <i>never</i> dress it with rubber "rejuvenator" oils, which soften it permanently. Transport rubber overview: <a class="xref" href="#s6">SEC 06.5</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-impedance"><b>Impedance (Z)</b><span>Opposition to AC, in ohms; frequency-dependent. Low-Z outputs drive high-Z inputs.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Impedance</b> (<b>Z</b>) is the total opposition a circuit presents to AC, measured in ohms. Unlike plain resistance it's <i>frequency-dependent</i>, because capacitors and inductors oppose AC by amounts that change with frequency (their reactance). So a speaker rated "8&nbsp;Ω" or a mic input rated "2&nbsp;kΩ" is a nominal figure — the real value slides with frequency, which is why crossover and filter behavior exists at all.</p>
+<p>The rule that matters at the bench is <b>voltage bridging</b>: a <i>low-impedance output</i> should drive a <i>high-impedance input</i>, typically by a factor of ten or more. A source of, say, 100&nbsp;Ω feeding a 10&nbsp;kΩ input barely loads down, so almost all the signal voltage transfers and frequency response stays flat. Get it backwards — a high-Z source into a low-Z load — and you lose level, roll off the highs, and can distort the source. When a stage sounds thin or weak, checking that its output isn't being loaded by too low an input impedance downstream is a standard step. Reactance formulas: <a class="xref" href="#s1">SEC 01</a>.</p>
+<div class="eq">X<sub>C</sub> = 1 / (2&#960;fC) &nbsp;&nbsp;&nbsp; X<sub>L</sub> = 2&#960;fL</div>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-insert-point"><b>Insert point</b><span>TRS jack breaking a channel's path to patch in a processor; a dirty insert jack silently kills the channel.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>An <b>insert point</b> is a TRS jack wired to break a channel's signal path and route it out and back, so you can patch an external processor (compressor, EQ) into that one channel. With nothing plugged in, an internal <b>normalled</b> contact bridges send back to return so the channel passes straight through; insert a plug and that bridge opens, sending the signal out the tip (or ring, depending on wiring) and expecting it back on the other conductor.</p>
+<p>Because the whole channel's audio runs <i>through</i> those normalling contacts, a dirty or oxidized insert jack is a silent channel-killer: no plug is inserted, yet the internal switch contacts fail to make, and the channel goes dead or intermittent for no visible reason. It's a favorite gotcha because nothing is plugged in to suggest the jack is even in circuit. Cure it by exercising and cleaning the jack — insert and remove a plug several times, hit the contacts with DeoxIT — before you go chasing the fault deeper into the strip. Jacks and normalling: <a class="xref" href="#s6">SEC 06.4</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-leaf-switch"><b>Leaf switch</b><span>Simple spring-contact switch actuated by a mechanism; common in transports for mode sensing.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>leaf switch</b> is about the simplest switch there is: one or more springy metal blades (leaves) that a mechanism physically pushes together or apart to make and break a contact. In tape transports they're everywhere as <b>mode and position sensors</b> — telling the logic when a lever is in play, when the door is closed, or when the reel has stopped turning — because they're cheap, robust, and need no power to sense a mechanical state.</p>
+<p>They fail by contact tarnish and by losing spring tension or bending out of alignment, so the blades no longer meet cleanly at the right point in the mechanism's travel. Symptoms are logic that won't enter a mode, or does so intermittently. Diagnose by watching continuity across the leaves while you actuate the mechanism by hand; fix by burnishing the contacts and gently re-tensioning or realigning the blades. Go easy — over-bending fatigues the metal.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-motorboating"><b>Motorboating</b><span>Low-frequency putt-putt oscillation, classically from failed supply decoupling.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Motorboating</b> is a slow, repetitive <i>putt-putt-putt</i> oscillation, usually well below 10&nbsp;Hz, that sounds exactly like a distant outboard motor. It's not a signal problem — it's the amplifier oscillating at a very low frequency because feedback that should have stayed within one stage is instead traveling <i>through the shared power supply</i> from a later stage back into an earlier one.</p>
+<p>The classic cause is failed <b>supply decoupling</b>: the electrolytic caps that hold each stage's local rail stiff have dried out or lost capacitance, so the rail sags and swings with the audio and couples stages together into a low-frequency loop. In vintage gear it's overwhelmingly aging electrolytics — reservoir caps, and the small per-stage decoupling caps down the rail. Track it by scoping the rail for the same putt-putt riding on the DC, then reforming or replacing the decoupling and reservoir capacitors. Rails and decoupling: <a class="xref" href="#s6">SEC 06.3</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-normalled"><b>Normalled connection</b><span>A jack's default internal path, broken when a plug is inserted (patchbays, inserts).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>normalled connection</b> is the default signal path a jack completes internally when <i>no plug is inserted</i>. The jack has an extra spring contact that touches the tip (or ring) terminal at rest, bridging the signal to somewhere — a return, the next point in a chain, or straight through a break in the path. Push a plug in and that spring is levered away, <b>breaking the normal</b> and handing the connection over to your cable instead.</p>
+<p>This is the mechanism behind patchbays (where a top row normals down to the bottom row until you patch) and channel inserts (which normal send back to return). The catch for a repairer is that those normalling contacts carry audio even with nothing plugged in, so when they oxidize they cause dead or intermittent channels with no external clue. Cleaning and exercising the jack is the first move. Half-normal vs full-normal wiring just changes whether inserting a plug also breaks the normal or merely taps it. Jacks: <a class="xref" href="#s6">SEC 06.4</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-op-amp"><b>Op-amp</b><span>Integrated high-gain amplifier block; with feedback resistors it becomes a precise gain stage.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>An <b>operational amplifier</b> is a differential amplifier — it looks at the difference between its two inputs (− inverting, + non-inverting) and multiplies it by an enormous <i>open-loop</i> gain, typically 100,000× or more. On its own that gain is unusable: the tiniest input difference slams the output hard against a supply rail. It becomes useful only when you wrap <b>negative feedback</b> around it.</p>
+        <p>With feedback, an ideal op-amp obeys two golden rules: <b>(1)</b> no current flows into either input, and <b>(2)</b> the output does whatever it takes to hold the two inputs at the same voltage. Every gain formula falls out of these:</p>
+        <div class="eq">Non-inverting gain = 1 + Rf/Rg &nbsp;|&nbsp; Inverting gain = −Rf/Rin</div>
+        <p>In an inverting stage the + input is grounded, so rule 2 drags the − input to 0&nbsp;V as well — a <b>virtual ground</b>. Tie many input resistors to that node and each one's current sums there without the sources loading each other: that is exactly a mixer's summing bus.</p>
+        <p><b>Bench checks:</b> confirm the rails at the supply pins (on most DIP-8 duals V+ is pin 8, V− is pin 4 — verify against the datasheet); the output should sit at a sane DC point (≈0&nbsp;V on dual rails, ≈½&nbsp;Vcc single-supply). An output pinned hard to a rail means a dead stage or bad input bias. With good rails and sane surroundings but signal in and nothing out, suspect the IC and confirm by substitution. Common audio parts: 4558, TL072, NE5532/5534. Full theory in <a class="xref" href="#s6">SEC 06.2</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-pinch-roller"><b>Pinch roller</b><span>Rubber wheel pressing tape against the capstan.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>The <b>pinch roller</b> is the rubber wheel that presses the tape firmly against the spinning <b>capstan</b>, forming the pinch that pulls tape past the heads at a constant speed. The capstan sets the speed; the roller supplies the grip. Everything about playback speed and stability depends on this one contact being clean, round, and evenly sprung, which is why it's a first-look item on any transport.</p>
+<p>Pinch rollers fail with age in a few characteristic ways: the rubber hardens and glazes so it slips (causing speed drift and <b>wow/flutter</b>), it goes sticky and sheds, or it develops a flat spot from sitting engaged. A glazed or contaminated roller also grabs unevenly and can pull tape off track. Clean it with IPA on a swab, rolling the whole circumference; if the rubber is cracked, shiny-hard, or gummy, it needs replacement — cleaning won't restore dead rubber. Transport rubber and speed faults: <a class="xref" href="#s6">SEC 06.5</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-pot"><b>Pot (potentiometer)</b><span>Variable voltage divider: element + wiper. Taper A = log/audio, B = linear (modern convention).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>potentiometer</b> is a three-terminal resistive element with a moving <b>wiper</b>. The two outer terminals connect to each end of a resistive track; the wiper picks off a voltage somewhere along it, making it a variable voltage divider. Wire only two terminals (wiper plus one end) and you have a variable resistor, or <i>rheostat</i>, instead. In audio gear they show up everywhere as volume, tone, pan, and trim controls. See <a class="xref" href="#s6">SEC 06.4</a> for wiring and cleaning.</p>
+<p>The <b>taper</b> is how resistance changes as you rotate. <b>Linear (B)</b> tracks evenly with rotation; <b>log/audio (A)</b> is weighted so that most of the resistance change happens in the upper half of travel, matching how our ears perceive loudness — a linear pot used for volume sounds like it does nothing then jumps to full near the top. Note the marking convention differs by era and region, so verify with a meter rather than trusting the letter. Pots fail by wearing the track (scratchy, crackly audio when turned) or oxidizing at the wiper contact; a shot of contact cleaner and some exercise revives many, but a badly worn track needs replacement.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-phantom-power"><b>Phantom power</b><span>+48 V DC fed up a balanced mic line to power condenser mics.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Phantom power</b> is <b>+48&nbsp;V</b> DC placed on <i>both</i> signal conductors of a balanced mic line (pins 2 and 3) with respect to the shield/ground (pin 1), fed through a pair of matched <b>6.8&nbsp;k&#937;</b> resistors. Because the same voltage sits on both signal legs equally, a balanced dynamic mic sees no voltage difference across its coil and ignores it, while a condenser mic taps it to run its internal preamp and polarize the capsule. That is why the same XLR input can power one mic and leave another undisturbed.</p>
+<p>At the bench, treat phantom with respect: never patch or unpatch unbalanced sources or plug in TS cables with phantom live, and switch it off before hot-patching. Symptoms of trouble include one channel powering condensers and its neighbor not (check the feed resistors and the switch), or DC leaking through to the following stage because a blocking coupling capacitor has failed. Measure the +48&nbsp;V at the resistor junction and confirm both legs match; a mismatch unbalances the line and injects hum.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-rail"><b>Rail</b><span>A supply voltage line (+15 V rail, −15 V rail).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>rail</b> is simply one of the fixed DC supply lines that feeds the circuitry — the busses everything hangs off. Analog audio boards commonly run <i>bipolar</i> rails such as <b>+15&nbsp;V</b> and <b>-15&nbsp;V</b> (or &plusmn;12&nbsp;V, &plusmn;18&nbsp;V) referenced to a central ground, which lets op-amps swing above and below zero to pass an AC audio signal symmetrically. Digital and relay sections often add a single <b>+5&nbsp;V</b> rail.</p>
+<p>Rails are your first checkpoint on any dead or misbehaving unit: measure each one at a regulator output or a decoupling cap and confirm it is present, at the right voltage, and clean. A missing or sagging rail points upstream to the supply; excess <a class="term" data-term="g-ripple">ripple</a> on a rail points to tired filter caps. See <a class="xref" href="#s6">SEC 06.3</a> for supply diagnostics.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-reactance"><b>Reactance</b><span>The frequency-dependent part of impedance, from caps (falls with f) and inductors (rises with f).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Reactance</b> (<b>X</b>, in ohms) is the part of a component's opposition to current that depends on <i>frequency</i>, as opposed to plain resistance which does not. Capacitors and inductors store and release energy rather than dissipating it, so their opposition changes with how fast the signal alternates. Capacitive reactance <i>falls</i> as frequency rises (a cap passes highs, blocks DC); inductive reactance <i>rises</i> with frequency (an inductor passes DC, chokes highs).</p>
+<div class="eq">X<sub>C</sub> &#8776; 1 &#215; (2&#960;fC)<sup>&#8722;1</sup>&nbsp;&nbsp;&nbsp;X<sub>L</sub> = 2&#960;fL</div>
+<p>Reactance combines with resistance to form <b>impedance</b>, and it is why the same coupling capacitor that is nearly transparent at 1&nbsp;kHz can roll off bass, or why a tone control works at all. When a coupling cap loses value it presents more reactance at low frequencies, thinning out the bass — a common aging symptom worth checking when a channel sounds tinny.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-rectifier"><b>Rectifier</b><span>Diode(s) converting AC to DC.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>rectifier</b> is the diode arrangement that turns the AC coming off the transformer into pulsating DC. A single diode gives <i>half-wave</i> rectification (crude, wasteful); the usual arrangement is a <b>full-wave bridge</b> of four diodes (or a center-tapped pair) that flips the negative half of the waveform up, so the reservoir cap gets charged twice per mains cycle. That is why a 50&nbsp;Hz mains supply produces <b>100&nbsp;Hz</b> ripple and 60&nbsp;Hz produces <b>120&nbsp;Hz</b>.</p>
+<p>Bridges come as discrete diodes or a single four-lead brick. They fail shorted (blowing the fuse, sometimes with visible cracking) or open on one leg (which drops output and doubles the ripple frequency component on that half). Test diodes in-circuit with the meter's diode range for a normal ~0.6&nbsp;V drop one way and open the other; suspect the bridge whenever a supply is dead, hums badly, or trips its fuse. See <a class="xref" href="#s6">SEC 06.3</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-reflow"><b>Reflow</b><span>Remelting a joint with flux and fresh solder to repair it.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Reflow</b> means remelting an existing solder joint — ideally with a touch of <i>fresh solder and flux</i> — to restore a sound electrical and mechanical connection. It is the standard fix for a <b>cold</b> or <b>cracked joint</b>: a connection that looks dull, grainy, or has a hairline ring around a pin, often on heavy or mechanically stressed parts like jacks, pots, power connectors, and transformer pins.</p>
+<p>Don't just touch the iron to the old joint; the original solder may be oxidized or lead-free and won't wet cleanly. Add a little flux and fresh solder so the joint melts fully and reflows into a shiny concave fillet. Reheating without adding solder can leave the same bad joint, and dwelling too long risks lifting a pad or trace. Reflowing all the connector and jack joints on a channel is a quick, high-yield fix for intermittent crackle in vintage gear.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-regulator"><b>Regulator</b><span>Circuit/IC holding a rail at a fixed voltage (78xx/79xx families).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>regulator</b> holds a rail at a steady voltage despite changes in load and input. The workhorses are the three-terminal linear families: <b>78xx</b> for positive rails and <b>79xx</b> for negative, where the last two digits give the output — a <code>7812</code> outputs +12&nbsp;V, a <code>7915</code> outputs -15&nbsp;V. They need a few volts of <i>headroom</i> above the target and burn the difference as heat, which is why they run hot and live on heatsinks.</p>
+<p>To check one, measure input, output, and ground: input should sit a few volts above the rated output and the output should be within a percent or two of nominal. A regulator with good input but wrong or absent output is either dead or in thermal shutdown (feel for excessive heat, look for a shorted downstream part loading it). Because they are cheap and standard, a suspect regulator is usually just replaced. See <a class="xref" href="#s6">SEC 06.3</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-ripple"><b>Ripple</b><span>Residual 100/120 Hz AC left on a DC rail after filtering; rises as filter caps age.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Ripple</b> is the leftover AC riding on a DC rail after the reservoir and filter capacitors have done their smoothing — the supply charges the caps in pulses and they sag slightly between charges, leaving a small sawtooth. Because a full-wave <a class="term" data-term="g-rectifier">rectifier</a> charges twice per mains cycle, the ripple appears at <b>100&nbsp;Hz</b> (50&nbsp;Hz mains) or <b>120&nbsp;Hz</b> (60&nbsp;Hz mains), which is why supply-related hum has that characteristic low pitch.</p>
+<p>Measure it with the meter on AC volts, or better, look at the rail on a scope: a few tens of millivolts is normal, a volt or more of sawtooth means trouble. Ripple rises as <b>filter caps age</b> and lose capacitance or gain <a class="term" data-term="g-esr">ESR</a>, so growing hum in an old unit points straight at the reservoir caps. Regulators reject a lot of ripple, so excess ripple on a <i>regulated</i> rail suggests the regulator or its input caps are failing.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-rms"><b>RMS</b><span>Root-mean-square — the DC-equivalent value of an AC waveform; sine RMS = peak × 0.707.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>RMS</b> (root-mean-square) is the way we assign a single meaningful number to a constantly changing AC waveform: it is the DC value that would deliver the <i>same heating power</i> into a load. It matters because power, and therefore amplifier output and the true voltage a meter should report, is tied to RMS, not to the peaks. For a sine wave the relationships are fixed:</p>
+<div class="eq">V<sub>RMS</sub> &#8776; V<sub>peak</sub> &#215; 0.707&nbsp;&nbsp;&nbsp;V<sub>peak</sub> &#8776; V<sub>RMS</sub> &#215; 1.414</div>
+<p>The 0.707 factor (1/&#8730;2) only holds for a clean sine. Cheap meters assume a sine and scale from the average, so they misread distorted or non-sinusoidal signals; a <i>true-RMS</i> meter computes the value correctly regardless of waveshape. Keep this in mind when measuring audio signals or the AC ripple on a rail, where the waveform is rarely a tidy sine.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-signal-injection"><b>Signal injection</b><span>Feeding a known tone into a point and listening at the output — the mirror image of signal tracing.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Signal injection</b> is fault-finding from the <i>output backwards</i>: you inject a known test tone into successive points along the chain, starting near the output and working toward the input, and listen (or scope) at the output to see where the tone reappears. When injecting at a node produces sound but injecting one stage earlier does not, the dead stage lies between those two points.</p>
+<p>It is the mirror image of <a class="term" data-term="g-signal-tracing">signal tracing</a> and is handy when you have no test source at the front end, or when the fault is late in the chain. Use an appropriate level and coupling — a small AC signal through a blocking capacitor so you don't force DC into a stage — and respect where you are injecting; a line-level tone dumped straight into a mic input can overload it. See <a class="xref" href="#s6">SEC 06.1</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-signal-tracing"><b>Signal tracing</b><span>Feeding a tone at the input and probing successive nodes to find where it dies.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Signal tracing</b> is fault-finding from the <i>input forwards</i>: feed a steady tone into the input, then follow it stage by stage with a probe — scope, meter, or an audio tracer/amplified probe — watching for the point where the signal disappears or distorts. The last node where it looks right and the first where it doesn't bracket the faulty stage.</p>
+<p>This is usually the quickest way to localize a dead or distorted channel, and a scope makes it visual: you can see gain being added at each op-amp stage and spot exactly where the waveform clips, drops, or goes flat. Pair it against <a class="term" data-term="g-signal-injection">signal injection</a> when you lack access to the input, and follow the block diagram in <a class="xref" href="#s6">SEC 06.1</a> so you know what the signal should look like at each node.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-solder-wick"><b>Solder wick</b><span>Flux-impregnated copper braid that soaks up molten solder.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Solder wick</b> (desoldering braid) is fine, flux-impregnated copper braid used to <i>lift</i> molten solder off a joint. Lay the braid on the joint, press the iron down on top, and capillary action draws the melted solder up into the braid — good for cleaning pads, clearing bridges, and prepping a joint for reflow where a solder sucker can't reach.</p>
+<p>Use a wide-enough braid, keep the iron hot, and add a dab of flux if the wick isn't drawing well. Advance to a clean section as it fills, and don't dwell — pressing hot braid on a pad too long can lift it. Snip off and discard the used, solder-loaded length. It complements a desoldering pump: wick for surface cleanup and bridges, pump for emptying through-holes.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-summing-amp"><b>Summing amplifier</b><span>Inverting op-amp stage where multiple inputs meet at a virtual ground — the electrical heart of a mixer.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>summing amplifier</b> is an inverting op-amp stage where several input resistors all connect to the same point at the op-amp's inverting input. Because that point is a <a class="term" data-term="g-virtual-ground">virtual ground</a> held at 0&nbsp;V, each input current flows independently through its own resistor without interacting with the others — no channel loads down another. All those currents add at the node and flow through the feedback resistor, producing one combined output. That is exactly what a mixer's channel or master bus does: many faders, one output.</p>
+<p>Each input's gain is set by its own resistor against the feedback resistor:</p>
+<div class="eq">Vout = &#8722;( V1&#215;Rf/R1 + V2&#215;Rf/R2 + &#8230; )</div>
+<p>At the bench, a dead or noisy mix bus usually means a fault at or near this node — a failed bus op-amp, a cracked joint on a summing resistor, or a leaky coupling cap injecting DC. Because every channel meets here, a single bad component can kill the whole mix while individual channels test fine at their inserts. Op-amp theory and gain math: <a class="xref" href="#s6">SEC 06.2</a>; signal path context: <a class="xref" href="#s6">SEC 06.1</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-taper"><b>Taper</b><span>How a pot's resistance changes over rotation: linear or logarithmic (audio).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Taper</b> describes how a pot's resistance changes as you rotate it. A <b>linear</b> taper changes evenly — halfway rotation gives half resistance — and suits DC-setting jobs like bias, balance, and panning. A <b>logarithmic</b> (audio) taper changes slowly at first and rapidly near the end, matching how our ears perceive loudness so a volume control <i>sounds</i> smooth across its travel. A linear pot used as a volume control feels wrong: almost all the useful range is bunched in the bottom fifth of rotation.</p>
+<p>Tapers are marked on the body: <code>A</code> = audio/log, <code>B</code> = linear in the common Asian/European scheme (US-made parts sometimes reverse this, so measure if it matters). You can check taper with a meter by reading wiper-to-end resistance at the midpoint: a linear pot reads about half of total there, a log pot reads roughly <b>10&#8211;20%</b>. When replacing, match both value <i>and</i> taper — a right-value pot with the wrong taper works electrically but feels broken to the user. Pots and faders in detail: <a class="xref" href="#s6">SEC 06.4</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-thermal-fuse"><b>Thermal fuse</b><span>One-shot overtemperature fuse, often hidden inside transformer windings.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>thermal fuse</b> (thermal cutoff, TCO) is a one-shot device that opens permanently when its body exceeds a set temperature — typically stamped on it, e.g. <code>Tf 130&#176;C</code>. Unlike a resettable thermal switch, once it blows it stays blown and must be replaced. Its job is a last-ditch safety cutout against overheating, most often buried in the outer winding of a mains transformer, but also found clamped to heatsinks and inside heater assemblies.</p>
+<p>At the bench it's a classic hidden fault: a unit reads <b>dead with a good mains fuse</b>, and continuity across the transformer primary is open even though the winding looks intact. The fuse is frequently potted under the outer paper wrap of the transformer, out of sight. Test by checking continuity end-to-end through the suspected series element; an open thermal fuse reads infinite. If one has blown, treat it as a symptom — find <i>why</i> it overheated (shorted load, failed fan, blocked ventilation) before fitting a replacement of the same or a modestly higher rated temperature and adequate current rating.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-tinning"><b>Tinning</b><span>Pre-coating a wire, lead, or tip with solder.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Tinning</b> means pre-coating a metal surface with a thin layer of solder before making the final joint — the tip of your iron, the end of a stranded wire, or a component lead. On stranded wire it locks the strands together and lets them take solder cleanly; on an iron tip a bright tinned face transfers heat far better than a dull oxidized one. Tinning both sides of a joint first, then bringing them together, gives fast reliable <a class="term" data-term="g-wetting">wetting</a> with minimal heat.</p>
+<p>The catch: <b>never tin the stripped end of a wire that goes under a screw terminal</b>. Solder cold-flows under clamping pressure, the joint loosens over time, and you get an intermittent or a hot connection. For those, use a bare wire or a crimped ferrule instead. A tip that won't tin is telling you it's oxidized — clean it and re-tin before it stops transferring heat entirely.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-tolerance"><b>Tolerance</b><span>Allowed deviation from marked value (±5%, ±10%…).</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Tolerance</b> is how far a real part is allowed to stray from its marked value — a resistor marked 10&nbsp;k&#937; at &#177;5% may legitimately measure anywhere from 9.5&nbsp;k to 10.5&nbsp;k&#937;. It's shown by the fourth color band on resistors (gold = &#177;5%, silver = &#177;10%, brown = &#177;1%) or as a letter code, and by a percentage or letter on caps. A measured value inside tolerance is <i>not</i> a fault, so don't chase small deviations.</p>
+<p>At the bench, tolerance tells you whether a reading is meaningful. Where a circuit depends on a precise ratio — filter corners, oscillator timing, gain-setting pairs — parts are chosen tight (1% or better), and there a value off by 5% genuinely matters. Elsewhere (decoupling, pull-ups) wide tolerance is normal and irrelevant. When substituting, matching or bettering the original tolerance is safe; going looser can shift behavior in tuned stages.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-trs-ts"><b>TRS / TS</b><span>Tip-ring-sleeve / tip-sleeve phone plugs: TRS = stereo or balanced or insert; TS = mono unbalanced.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>TS</b> (tip-sleeve) and <b>TRS</b> (tip-ring-sleeve) are the two common phone-plug layouts, in both 1/4" and 3.5&nbsp;mm sizes. A <b>TS</b> plug has two conductors — signal on tip, ground/shield on sleeve — and carries one <a class="term" data-term="g-unbalanced">unbalanced</a> mono signal (instrument cables, guitar leads). A <b>TRS</b> plug adds a ring for a third conductor, and that same three-contact plug serves three <i>different</i> jobs depending on the gear.</p>
+<p>The three TRS uses are the trap: <b>stereo</b> (tip = left, ring = right, sleeve = ground, as in headphones), <b>balanced mono</b> (tip = hot, ring = cold, sleeve = ground), and <b>insert</b> (tip and ring are send and return on one plug, wiring conventions vary by maker). A cable or jack is electrically fine but useless if it's wired for the wrong one of these. When tracing, ring out each contact with a meter rather than assuming; check that switched jacks (the tip contact that breaks when a plug is inserted) actually break and make. Jacks and connectors: <a class="xref" href="#s6">SEC 06.4</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-unbalanced"><b>Unbalanced</b><span>One signal conductor + shield (RCA, TS). Simple, hum-prone over distance.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Unbalanced</b> connections carry the signal on a single conductor referenced to a shield that serves as both the ground return and the interference screen — RCA and TS being the everyday examples. It's simple and cheap, and fine over short runs, but the shield doubling as signal return is its weakness: any voltage difference between the two ends' grounds, or hum picked up along the run, adds directly to the audio. That's the source of the classic <b>ground-loop hum</b> that grows with cable length.</p>
+<p>Contrast with balanced connections, which send the signal on two conductors and let the receiver subtract them, canceling any interference common to both. At the bench, when unbalanced gear hums, don't immediately blame the equipment — try lifting or rerouting grounds, shortening the run, or a hum eliminator first. Persistent hum only on the unbalanced ins/outs of an otherwise quiet unit usually points to a grounding topology issue, not a failed component.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-vu-meter"><b>VU meter</b><span>Averaging level meter; 0 VU is a nominal operating level, not a maximum.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>VU (volume unit) meter</b> shows an <i>average</i> of the signal level, not its peaks. The standard ballistic response deliberately rises and falls over roughly <b>300&nbsp;ms</b>, so it tracks perceived loudness and ignores brief transients. Crucially, <b>0&nbsp;VU is a nominal operating level, not a ceiling</b> — it corresponds to a reference like +4&nbsp;dBu in pro gear, and program peaks routinely sit well above it with plenty of headroom left before actual clipping.</p>
+<p>That averaging behavior is why a VU meter reads low on percussive material that is in fact clipping the electronics — the meter simply can't respond fast enough. Treat it as a level-setting reference, not a clip indicator; peak or LED meters exist for that. At the bench, a meter that reads wrong may just be a stiff or dried-out movement, a bent needle, or a failed meter driver/rectifier rather than a signal-path fault — verify the actual signal with a scope before condemning the amplifier feeding it.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-virtual-ground"><b>Virtual ground</b><span>A node held at 0 V by op-amp feedback without being connected to ground; where mix buses sum.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>virtual ground</b> is a node that sits at 0&nbsp;V without being physically wired to ground. In an inverting op-amp stage, the op-amp drives its output to whatever it takes to keep its two inputs at the same voltage; with the non-inverting input tied to ground, feedback forces the inverting input to 0&nbsp;V too. It <i>acts</i> like ground for signal purposes but sources or sinks no current to earth — hence <i>virtual</i>.</p>
+<p>This is what makes mix buses work: because the summing node holds steady at 0&nbsp;V, each channel's input current flows through its own resistor independently and the currents simply add, with no crosstalk between channels (see <a class="term" data-term="g-summing-amp">summing amplifier</a>). At the bench, a healthy virtual-ground node should measure very close to 0&nbsp;V DC; a reading pulled toward a rail means the feedback loop is broken — a dead op-amp, an open feedback resistor, or a cracked joint — and the whole bus will be dead or distorted. Op-amp fundamentals: <a class="xref" href="#s6">SEC 06.2</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-wetting"><b>Wetting</b><span>Molten solder bonding to and flowing over a metal surface; non-wetting means oxide or contamination.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Wetting</b> is what happens when molten solder bonds to a clean metal surface and flows out over it, forming a smooth concave fillet — the visible sign of a real metallurgical joint rather than solder merely sitting on top. Good wetting needs three things together: a clean oxide-free surface, active flux, and enough heat to bring both parts up to temperature. Get all three and the solder pulls in tight to the metal; miss one and it beads up.</p>
+<p><b>Non-wetting</b> — solder balling up, sitting proud, or forming a dull ragged blob — means the surface is oxidized, greasy, or too cold. That's the signature of a <i>cold joint</i> or a contaminated pad, and it's a mechanically weak, electrically unreliable connection. The fix is not more solder but more flux and a clean, hot surface: add flux, reheat until the solder visibly flows and wets both parts, and let it cool undisturbed. If it still won't wet, the metal needs cleaning or tinning first.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-wiper"><b>Wiper</b><span>The moving contact of a pot or fader.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>The <b>wiper</b> is the moving contact inside a pot or fader — the sliding finger that rides along the resistive track and taps off a voltage at whatever point the shaft or slider is set to. It's the third terminal, between the two ends of the track, and it carries the output of the divider. Mechanically it's also the part that wears: it drags across the track thousands of times over a unit's life.</p>
+<p>A worn or dirty wiper is the number-one cause of <b>scratchy, crackly pots</b> — as the contact intermittently lifts off an oxidized or dust-fouled track, the output jumps and you hear it as noise, especially audible when DC is present across the track. Cleaning with a contact cleaner (DeoxIT) and working the control full-travel often restores it; a track worn through to a dead spot cannot be cleaned and needs replacement. Pots and faders in depth: <a class="xref" href="#s6">SEC 06.4</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-wow"><b>Wow</b><span>Slow tape-speed variation; pitch drifting. See flutter.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p><b>Wow</b> is slow variation in tape speed — cycles below roughly a few hertz — heard as the pitch drifting or slowly warbling, most obvious on sustained tones like piano or held vocals. It comes from the mechanical parts that turn slowly: an off-center or worn capstan, a dragging or eccentric reel, a slipping idler, or uneven pinch-roller pressure. Faster speed variation is <a class="term" data-term="g-flutter">flutter</a>; the two are often specified together as <b>wow &amp; flutter</b>.</p>
+<p>At the bench, wow points you at the slow-rotating drivetrain rather than the electronics. Check the capstan and pinch roller first — a hardened, flat-spotted, or gummy pinch roller is a frequent cause — then belts, idlers, and bearing drag. A test tape with a steady tone and a meter or ear makes it audible and measurable. Transport restoration and drive components: <a class="xref" href="#s6">SEC 06.5</a>.</p>
+      </div></details>
+    </div>
+    <div class="g-item" id="g-zener"><b>Zener diode</b><span>Diode used in reverse breakdown as a voltage reference or clamp.</span>
+      <details class="g-detail"><summary>Detailed explanation</summary><div>
+        <p>A <b>Zener diode</b> is run <i>backwards</i>. Above a specific reverse voltage — its Zener voltage, e.g. <code>5V6</code> for 5.6&nbsp;V — it conducts hard while holding that voltage nearly constant across a wide current range. That makes it a simple voltage reference or clamp: fed through a series resistor from a higher rail, it pins its cathode at the Zener voltage, and it will also clip any transient that tries to exceed that level.</p>
+<p>You'll find Zeners setting reference voltages, protecting inputs, and clamping spikes across relay coils and rails. Identify one by the marked breakdown voltage rather than a plain part number, and note the band still marks the cathode as on any diode. It fails either <b>shorted</b> (rail collapses to near 0&nbsp;V, or the reference disappears) or <b>open</b> (regulation and clamping vanish, the protected point drifts high). Test in-circuit by measuring the voltage across it against its rating; a good Zener sits right at its marked value, a shorted one reads near zero, an open one reads the full unregulated voltage.</p>
+      </div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SEC 09 MY BENCH ============ -->
+<section class="sec" id="s9">
+  <div class="sec-head"><span class="num">SEC 09</span><h2>My Bench</h2></div>
+  <p class="sec-sub">House rules, kit, and sources — the layer that's yours.</p>
+  <div class="cards">
+
+  <div class="card bench-card">
+    <span class="tag bench">Kit</span>
+    <h3>Bench equipment</h3>
+    <ul>
+      <li>Tabiger 60 W pen iron (unregulated dial, ~300–400 °C)</li>
+      <li>Victor VC890C multimeter</li>
+      <li>63/37 leaded solder — 0.6 mm primary, 1.0 mm heavy</li>
+      <li>Solder wick, desoldering pump, <a class="term" data-term="g-flux">flux</a> pen</li>
+      <li>Flush cutters, wire stripper</li>
+      <li>DeoxIT D5 mini (L-M-H valve), DeoxIT for droppers</li>
+      <li>99% IPA, MG white lithium grease</li>
+      <li>Homebrew LM386 signal tracer (50 V max, solid-state only)</li>
+    </ul>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">House rules</span>
+    <h3>Standing orders</h3>
+    <ul>
+      <li>Service manual before procedure. No pad, designator, or mechanical action from memory or cross-reference — confirm on the silkscreen.</li>
+      <li>Power stays off until each mechanical/electrical issue is resolved and verified.</li>
+      <li>Tracer ground clip: attach powered off.</li>
+      <li>DeoxIT: dropper or Low valve inside anything. Never broad-spray a transport.</li>
+      <li>Gear teeth dry; pivots and bearings only.</li>
+      <li>One change at a time; photo before every disassembly layer.</li>
+      <li>Evidence before solder. A theory isn't a diagnosis.</li>
+    </ul>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">Sources</span>
+    <h3>Parts &amp; documentation</h3>
+    <table class="kv">
+      <tr><td>Parts, first stop</td><td>Lee's Electronic — 4131 Fraser St, Vancouver · leeselectronic.com</td></tr>
+      <tr><td>Parts, second</td><td>KP Components — kpcomponents.co</td></tr>
+      <tr><td>Service manuals</td><td>Hifi Engine · Elektrotanya</td></tr>
+      <tr><td>Model repair lore</td><td>AudioKarma forums</td></tr>
+      <tr><td>Rubber restore</td><td>MG Chemicals Rubber Renue 408C (current version; confirm stock at Lee's first)</td></tr>
+    </table>
+  </div>
+
+  <div class="card bench-card">
+    <span class="tag bench">Fleet</span>
+    <h3>Units on the bench</h3>
+    <table class="kv">
+      <tr><td>Yamaha EM-80</td><td>Channel 2 dead — active target. Path: LB20063 jack → KA40007 selector → NA80005 ATT → NA80001 PA (BA311F) → <a class="term" data-term="g-bus">bus</a>. Top suspects: selector joints, PA board.</td></tr>
+      <tr><td>Marantz PMD720</td><td>Counter cable, gain <a class="term" data-term="g-pot">pot</a> <a class="term" data-term="g-reflow">reflow</a> (R112/212/312/412), HP1 jack done. Outstanding: CH3 pot axial play, CH3/CH4 verification.</td></tr>
+      <tr><td>Yamaha MT120</td><td>Transport re-lubricated after DeoxIT washout; resolved.</td></tr>
+      <tr><td>ART P48 patchbay</td><td>One jack: spread tip contact — retension or replace with switching jack (Neutrik NYS2152 / Switchcraft 112BX).</td></tr>
+    </table>
+  </div>
+
+  </div>
+  <p class="footer-note">REF-01 · AUDIO BENCH REFERENCE · press <kbd>/</kbd> to search · theory in ▸ DEEP DIVE blocks · verify against the service manual before acting</p>
+</section>
+
+</main>
+</div>
+
+<script>
+/* ---------- theme ---------- */
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.addEventListener('click', () => {
+  const h = document.documentElement;
+  const next = h.dataset.theme === 'dark' ? 'light' : 'dark';
+  h.dataset.theme = next;
+  themeBtn.textContent = next === 'dark' ? '☾ DARK' : '☀ LIGHT';
+});
+
+/* ---------- tabs ---------- */
+const searchInput = document.getElementById('search');
+const resultBar = document.getElementById('resultBar');
+const resultTxt = document.getElementById('resultTxt');
+const searchResults = document.getElementById('searchResults');
+const items = [...document.querySelectorAll('.card, .g-item')];
+const itemText = items.map(el => el.textContent.toLowerCase());
+const sections = [...document.querySelectorAll('section.sec')];
+const navLinks = [...document.querySelectorAll('nav.side a')];
+const topLinks = [...document.querySelectorAll('nav.topnav a')];
+
+// per-item display data for the results view
+const itemTitle = items.map(el => {
+  if(el.classList.contains('g-item')) return el.querySelector('b').textContent.trim();
+  const h = el.querySelector('h3');
+  return h ? h.textContent.trim() : el.textContent.replace(/\s+/g,' ').trim().slice(0,40);
+});
+const itemSnippet = items.map(el => {
+  if(el.classList.contains('g-item')) return el.querySelector('span').textContent.trim();
+  const t = el.textContent.replace(/\s+/g,' ').trim();
+  return t.length > 160 ? t.slice(0,160) + '…' : t;
+});
+
+let activeTab = 's0';   // currently visible tab
+let prevTab = 's0';     // tab to restore when search is cleared
+let inSearch = false;   // results view is showing
+
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function validId(id){ return /^s[0-9]$/.test(id) ? id : 's0'; }
+
+/* show a single tab; leaves the search box empty (used for real tab navigation) */
+function showTab(id){
+  id = validId(id);
+  inSearch = false;
+  searchInput.value = '';
+  resultBar.style.display = 'none';
+  searchResults.classList.remove('active');
+  searchResults.innerHTML = '';
+  sections.forEach(s => s.classList.toggle('active', s.id === id));
+  navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  topLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  activeTab = id;
+}
+
+/* hash drives tab state — back button, cross-refs and direct links all route here */
+function onHash(){
+  const id = validId((location.hash || '#s0').slice(1));
+  showTab(id);
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', onHash);
+
+/* ---------- global search ---------- */
+let debounce;
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(runSearch, 120);
+});
+
+function runSearch(){
+  const q = searchInput.value.trim().toLowerCase();
+  if(!q){ resetSearch(); return; }
+  if(!inSearch){ prevTab = activeTab; inSearch = true; }
+
+  let hits = 0;
+  const groups = new Map();          // section id -> [item indices]
+  items.forEach((el, i) => {
+    if(itemText[i].includes(q)){
+      hits++;
+      const secId = el.closest('section.sec').id;
+      if(!groups.has(secId)) groups.set(secId, []);
+      groups.get(secId).push(i);
+    }
+  });
+
+  // build the flat results list, grouped under section headings
+  let html = '';
+  sections.forEach(sec => {
+    if(!groups.has(sec.id)) return;
+    const num = sec.querySelector('.sec-head .num').textContent;
+    const title = sec.querySelector('.sec-head h2').textContent;
+    html += '<div class="res-group"><div class="res-head"><span class="num">' +
+      escapeHtml(num) + '</span><h3>' + escapeHtml(title) + '</h3></div>';
+    groups.get(sec.id).forEach(i => {
+      html += '<button class="res-item" data-idx="' + i + '"><b>' +
+        escapeHtml(itemTitle[i]) + '</b><span>' + escapeHtml(itemSnippet[i]) + '</span></button>';
+    });
+    html += '</div>';
+  });
+  if(!hits) html = '<p class="res-empty">No matches for "' + escapeHtml(q) + '".</p>';
+  searchResults.innerHTML = html;
+
+  // results view temporarily replaces the tab content
+  sections.forEach(s => s.classList.remove('active'));
+  navLinks.forEach(a => a.classList.remove('active'));
+  topLinks.forEach(a => a.classList.remove('active'));
+  searchResults.classList.add('active');
+  window.scrollTo(0, 0);
+
+  resultTxt.innerHTML = '<b>' + hits + '</b> result' + (hits===1?'':'s') + ' for "' + escapeHtml(q) + '"';
+  resultBar.style.display = 'block';
+}
+
+/* clearing the query returns to whatever tab was active before searching */
+function resetSearch(){
+  inSearch = false;
+  showTab(prevTab);
+}
+function clearSearch(){ searchInput.value=''; resetSearch(); searchInput.focus(); }
+
+/* jump from a result to its card: switch to that tab, scroll to it, flash it */
+function gotoItem(idx){
+  const el = items[idx];
+  const secId = el.closest('section.sec').id;
+  showTab(secId);
+  if(location.hash !== '#' + secId) history.replaceState(null, '', '#' + secId);
+  requestAnimationFrame(() => {
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1600);
+  });
+}
+searchResults.addEventListener('click', e => {
+  const b = e.target.closest('.res-item');
+  if(b) gotoItem(+b.dataset.idx);
+});
+
+/* define-term links: jump to the Glossary tab, expand that entry, flash it */
+function defineTerm(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const secId = el.closest('section.sec').id;
+  showTab(secId);
+  if(location.hash !== '#' + secId) history.replaceState(null, '', '#' + secId);
+  const det = el.querySelector('details.g-detail');
+  if(det) det.open = true;
+  requestAnimationFrame(() => {
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1600);
+  });
+}
+document.querySelectorAll('a.term').forEach(a => { a.setAttribute('tabindex','0'); a.setAttribute('role','link'); });
+document.addEventListener('click', e => {
+  const t = e.target.closest('a.term');
+  if(t){ e.preventDefault(); defineTerm(t.dataset.term); }
+});
+document.addEventListener('keydown', e => {
+  if((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('term')){
+    e.preventDefault(); defineTerm(document.activeElement.dataset.term);
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key === '/' && document.activeElement !== searchInput && !/input|select|textarea/i.test(document.activeElement.tagName)){
+    e.preventDefault(); searchInput.focus(); searchInput.select();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){ clearSearch(); }
+});
+
+/* initial tab from the URL hash (defaults to SEC 00 Bench Card) */
+onHash();
+
+/* ---------- helpers ---------- */
+function parseVal(s, defMult){ // parse "4.7k", "2M", "330", "100n", "4.7u", "220p"
+  if(s == null) return NaN;
+  s = String(s).trim().replace(',', '.');
+  if(!s) return NaN;
+  const m = s.match(/^([0-9]*\.?[0-9]+)\s*([kKmMuUnNpPrR]?)([0-9]*)$/);
+  if(!m){
+    // style like 4k7 / 2u2 handled by third group
+    return NaN;
+  }
+  let num = parseFloat(m[1]);
+  const suf = m[2];
+  if(m[3]) num = parseFloat(m[1] + '.' + m[3]); // 4k7 → 4.7
+  const mult = {k:1e3, K:1e3, M:1e6, m:1e-3, u:1e-6, U:1e-6, n:1e-9, N:1e-9, p:1e-12, P:1e-12, r:1, R:1, '':1}[suf];
+  // ambiguity: for resistance "m" rarely used; treat M/m via context is overkill — accept as-is
+  return num * (suf === '' && defMult ? defMult : mult);
+}
+function parseRes(s){
+  if(s == null) return NaN;
+  s = String(s).trim();
+  const m = s.match(/^([0-9]*\.?[0-9]*)\s*([kKmM]|[rR])?\s*([0-9]*)$/);
+  if(!m || (!m[1] && !m[3])) return NaN;
+  let intpart = m[1] || '0', frac = m[3] || '';
+  let num = parseFloat(frac ? intpart + '.' + frac : intpart);
+  const suf = (m[2]||'').toLowerCase();
+  return num * (suf === 'k' ? 1e3 : suf === 'm' ? 1e6 : 1);
+}
+function parseCap(s){ // returns farads
+  if(s == null) return NaN;
+  s = String(s).trim();
+  const m = s.match(/^([0-9]*\.?[0-9]*)\s*([uUnNpP])?\s*([fF])?\s*([0-9]*)$/);
+  if(!m || (!m[1] && !m[4])) return NaN;
+  let num = parseFloat(m[4] ? (m[1]||'0') + '.' + m[4] : m[1]);
+  const suf = (m[2]||'').toLowerCase();
+  return num * (suf === 'u' ? 1e-6 : suf === 'n' ? 1e-9 : suf === 'p' ? 1e-12 : 1);
+}
+function fmtRes(r){
+  if(!isFinite(r)) return '—';
+  if(r >= 1e6) return trim3(r/1e6) + ' MΩ';
+  if(r >= 1e3) return trim3(r/1e3) + ' kΩ';
+  return trim3(r) + ' Ω';
+}
+function fmtCap(f){
+  if(!isFinite(f)) return '—';
+  if(f >= 1e-6) return trim3(f*1e6) + ' µF';
+  if(f >= 1e-9) return trim3(f*1e9) + ' nF';
+  return trim3(f*1e12) + ' pF';
+}
+function fmtHz(h){
+  if(!isFinite(h)) return '—';
+  if(h >= 1e6) return trim3(h/1e6) + ' MHz';
+  if(h >= 1e3) return trim3(h/1e3) + ' kHz';
+  return trim3(h) + ' Hz';
+}
+function trim3(n){ return parseFloat(n.toPrecision(4)).toString(); }
+
+/* ---------- resistor calculator ---------- */
+const COLORS = [
+  {n:'Black', v:0, hex:'#111'}, {n:'Brown', v:1, hex:'#7a4a21'}, {n:'Red', v:2, hex:'#cf2f2f'},
+  {n:'Orange', v:3, hex:'#e07820'}, {n:'Yellow', v:4, hex:'#e6c619'}, {n:'Green', v:5, hex:'#2f8a3d'},
+  {n:'Blue', v:6, hex:'#2f5fbf'}, {n:'Violet', v:7, hex:'#7d3fa8'}, {n:'Grey', v:8, hex:'#8a8a8a'},
+  {n:'White', v:9, hex:'#f2f2f2'}
+];
+const MULTS = [
+  {n:'Black ×1', v:1, hex:'#111'}, {n:'Brown ×10', v:10, hex:'#7a4a21'}, {n:'Red ×100', v:100, hex:'#cf2f2f'},
+  {n:'Orange ×1k', v:1e3, hex:'#e07820'}, {n:'Yellow ×10k', v:1e4, hex:'#e6c619'}, {n:'Green ×100k', v:1e5, hex:'#2f8a3d'},
+  {n:'Blue ×1M', v:1e6, hex:'#2f5fbf'}, {n:'Violet ×10M', v:1e7, hex:'#7d3fa8'},
+  {n:'Gold ×0.1', v:0.1, hex:'#c9a227'}, {n:'Silver ×0.01', v:0.01, hex:'#bfbfbf'}
+];
+const TOLS = [
+  {n:'Gold ±5%', t:'±5%', hex:'#c9a227'}, {n:'Silver ±10%', t:'±10%', hex:'#bfbfbf'},
+  {n:'Brown ±1%', t:'±1%', hex:'#7a4a21'}, {n:'Red ±2%', t:'±2%', hex:'#cf2f2f'},
+  {n:'Green ±0.5%', t:'±0.5%', hex:'#2f8a3d'}, {n:'Blue ±0.25%', t:'±0.25%', hex:'#2f5fbf'},
+  {n:'Violet ±0.1%', t:'±0.1%', hex:'#7d3fa8'}
+];
+let bands = 4;
+function fillSelect(id, arr, sel){
+  const s = document.getElementById(id);
+  s.innerHTML = arr.map((o,i) => '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+o.n+'</option>').join('');
+  s.addEventListener('change', calcRes);
+}
+fillSelect('rs0', COLORS, 1);
+fillSelect('rs1', COLORS, 0);
+fillSelect('rs2', COLORS, 0);
+fillSelect('rsM', MULTS, 2);
+fillSelect('rsT', TOLS, 0);
+function setBands(n){
+  bands = n;
+  document.getElementById('b4').classList.toggle('on', n===4);
+  document.getElementById('b5').classList.toggle('on', n===5);
+  document.getElementById('d3w').style.display = n===5 ? '' : 'none';
+  document.getElementById('rb3').style.display = n===5 ? '' : 'none';
+  calcRes();
+}
+function calcRes(){
+  const d0 = COLORS[+document.getElementById('rs0').value];
+  const d1 = COLORS[+document.getElementById('rs1').value];
+  const d2 = COLORS[+document.getElementById('rs2').value];
+  const mu = MULTS[+document.getElementById('rsM').value];
+  const to = TOLS[+document.getElementById('rsT').value];
+  let digits = bands === 5 ? d0.v*100 + d1.v*10 + d2.v : d0.v*10 + d1.v;
+  const val = digits * mu.v;
+  document.getElementById('resOut').textContent = fmtRes(val) + ' ' + to.t;
+  document.getElementById('rb0').setAttribute('fill', d0.hex);
+  document.getElementById('rb1').setAttribute('fill', d1.hex);
+  const rb2 = document.getElementById('rb2'), rb3 = document.getElementById('rb3');
+  if(bands === 5){ rb2.setAttribute('fill', d2.hex); rb3.setAttribute('fill', mu.hex); }
+  else { rb2.setAttribute('fill', mu.hex); }
+  document.getElementById('rbT').setAttribute('fill', to.hex);
+}
+calcRes();
+
+/* ---------- ohm's law ---------- */
+function solveOhm(){
+  const vS = document.getElementById('ohmV').value.trim();
+  const iS = document.getElementById('ohmI').value.trim();
+  const rS = document.getElementById('ohmR').value.trim();
+  const V = vS ? parseFloat(vS.replace(',','.')) : NaN;
+  const I = iS ? parseFloat(iS.replace(',','.')) : NaN;
+  const R = rS ? parseRes(rS) : NaN;
+  const have = [isFinite(V), isFinite(I), isFinite(R)].filter(Boolean).length;
+  const out = document.getElementById('ohmOut');
+  if(have < 2){ out.textContent = 'Enter two values.'; return; }
+  let v=V, i=I, r=R;
+  if(!isFinite(v)) v = i * r;
+  else if(!isFinite(i)) i = v / r;
+  else if(!isFinite(r)) r = v / i;
+  const p = v * i;
+  out.innerHTML = 'V = ' + trim3(v) + ' V &nbsp; I = ' + fmtAmps(i) + ' &nbsp; R = ' + fmtRes(r) +
+    '<small>P = ' + fmtWatts(p) + ' — resistor should be rated ≥ 2× this</small>';
+}
+function fmtAmps(i){ return i < 1e-3 ? trim3(i*1e6)+' µA' : i < 1 ? trim3(i*1e3)+' mA' : trim3(i)+' A'; }
+function fmtWatts(p){ return p < 1 ? trim3(p*1e3)+' mW' : trim3(p)+' W'; }
+function clearOhm(){ ['ohmV','ohmI','ohmR'].forEach(id => document.getElementById(id).value=''); document.getElementById('ohmOut').textContent='—'; }
+
+/* ---------- capacitor code ---------- */
+function calcCap(){
+  const code = document.getElementById('capCode').value.trim();
+  const tol = document.getElementById('capTol').value;
+  const out = document.getElementById('capOut');
+  if(!code){ out.textContent = '—'; return; }
+  let pF = NaN;
+  const m3 = code.match(/^([0-9])([0-9])([0-9])$/);
+  const mE = code.match(/^([0-9]*)([uUnNpP])([0-9]*)$/);
+  const mD = code.match(/^([0-9]*\.?[0-9]+)\s*([uUnNpP])[fF]?$/);
+  if(m3){ pF = (parseInt(m3[1])*10 + parseInt(m3[2])) * Math.pow(10, parseInt(m3[3])); }
+  else if(mD){ const mult = {u:1e6,n:1e3,p:1}[mD[2].toLowerCase()]; pF = parseFloat(mD[1]) * mult; }
+  else if(mE && (mE[1] || mE[3])){ const mult = {u:1e6,n:1e3,p:1}[mE[2].toLowerCase()];
+    pF = parseFloat((mE[1]||'0') + '.' + (mE[3]||'0')) * mult; }
+  if(!isFinite(pF)){ out.textContent = 'Unrecognized — try 104, 4n7, 2u2, 0.1u'; return; }
+  const f = pF * 1e-12;
+  out.innerHTML = fmtCap(f) + ' &nbsp;=&nbsp; ' + trim3(pF/1e6) + ' µF &nbsp;=&nbsp; ' +
+    pF.toLocaleString() + ' pF' + (tol ? '<small>Tolerance: ' + tol + '</small>' : '');
+}
+document.getElementById('capCode').addEventListener('input', calcCap);
+document.getElementById('capTol').addEventListener('change', calcCap);
+
+/* ---------- voltage divider ---------- */
+function calcDiv(){
+  const V = parseFloat((document.getElementById('dvV').value||'').replace(',','.'));
+  const R1 = parseRes(document.getElementById('dvR1').value);
+  const R2 = parseRes(document.getElementById('dvR2').value);
+  const out = document.getElementById('divOut');
+  if(!isFinite(V) || !isFinite(R1) || !isFinite(R2) || R1+R2 === 0){ out.textContent = 'Vout = —'; return; }
+  const vo = V * R2 / (R1 + R2);
+  out.innerHTML = 'Vout = ' + trim3(vo) + ' V <small>ratio ' + trim3(R2/(R1+R2)) +
+    ' · divider current ' + fmtAmps(V/(R1+R2)) + '</small>';
+}
+['dvV','dvR1','dvR2'].forEach(id => document.getElementById(id).addEventListener('input', calcDiv));
+
+/* ---------- RC filter ---------- */
+function calcRC(){
+  const R = parseRes(document.getElementById('rcR').value);
+  const C = parseCap(document.getElementById('rcC').value);
+  const out = document.getElementById('rcOut');
+  if(!isFinite(R) || !isFinite(C) || R<=0 || C<=0){ out.textContent = 'fc = —'; return; }
+  const fc = 1 / (2 * Math.PI * R * C);
+  out.innerHTML = 'fc = ' + fmtHz(fc) + '<small>−3 dB point; signal below fc rolls off (high-pass, series C) or above fc (low-pass, shunt C)</small>';
+}
+['rcR','rcC'].forEach(id => document.getElementById(id).addEventListener('input', calcRC));
+
+/* ---------- dB ---------- */
+function calcDbFromRatio(){
+  const r = parseFloat((document.getElementById('dbRatio').value||'').replace(',','.'));
+  const out = document.getElementById('dbOut');
+  if(!isFinite(r) || r <= 0){ out.textContent = '—'; return; }
+  document.getElementById('dbVal').value = '';
+  out.textContent = trim3(20*Math.log10(r)) + ' dB';
+}
+function calcDbFromDb(){
+  const d = parseFloat((document.getElementById('dbVal').value||'').replace(',','.'));
+  const out = document.getElementById('dbOut');
+  if(!isFinite(d)){ out.textContent = '—'; return; }
+  document.getElementById('dbRatio').value = '';
+  out.textContent = 'voltage ratio ×' + trim3(Math.pow(10, d/20));
+}
+document.getElementById('dbRatio').addEventListener('input', calcDbFromRatio);
+document.getElementById('dbVal').addEventListener('input', calcDbFromDb);
+</script>
+</body>
+</html>
