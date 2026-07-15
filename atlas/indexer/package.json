@@ -1,0 +1,13 @@
+{
+  "name": "bench-atlas-indexer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Batch indexing pipeline for Bench Atlas — the only piece of this project that talks to the Claude API.",
+  "type": "commonjs",
+  "bin": {
+    "atlas-index": "./index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0"
+  }
+}

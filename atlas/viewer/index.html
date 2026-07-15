@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BENCH ATLAS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="topbar">
+    <button id="btn-back" class="tb-btn hidden" title="Back to library">&#9668; LIB</button>
+    <div id="tb-title">BENCH ATLAS</div>
+
+    <div id="device-tabs" class="hidden">
+      <button id="tab-atlas" class="tb-btn on">ATLAS</button>
+      <button id="tab-mods" class="tb-btn">MODS</button>
+    </div>
+
+    <div class="tb-spacer"></div>
+
+    <div id="pager" class="hidden">
+      <button id="btn-prev" class="tb-btn" title="Previous page">&#9668;</button>
+      <button id="btn-pagelist" class="tb-btn" title="Page list">PG <span id="pg-num">–</span></button>
+      <button id="btn-next" class="tb-btn" title="Next page">&#9658;</button>
+    </div>
+    <button id="btn-search" class="tb-btn hidden" title="Search designators">SRCH</button>
+    <button id="btn-path" class="tb-btn hidden" title="Signal paths">PATH</button>
+    <button id="btn-regions" class="tb-btn hidden" title="Toggle region outlines">RGN</button>
+    <button id="btn-invert" class="tb-btn hidden" title="Toggle scan inversion">INV</button>
+    <button id="btn-review" class="tb-btn hidden" title="Toggle review mode">REV</button>
+    <button id="btn-ref" class="tb-btn" title="Reference guide">REF</button>
+  </header>
+
+  <main id="stage">
+    <!-- Library home -->
+    <section id="library">
+      <div id="device-grid"></div>
+      <div id="library-empty" class="hidden">
+        <p>NO DEVICES FOUND</p>
+        <p class="dim">run <code>node atlas/fixtures/make-fixtures.js</code> to install the fixture device</p>
+      </div>
+      <form id="new-device-form" class="hidden">
+        <div class="nd-title">NEW DEVICE</div>
+        <input id="nd-name" type="text" placeholder="NAME" maxlength="80" autocomplete="off">
+        <input id="nd-model" type="text" placeholder="MODEL (OPTIONAL)" maxlength="80" autocomplete="off">
+        <div class="nd-buttons">
+          <button type="submit" class="tb-btn">CREATE</button>
+          <button type="button" id="nd-cancel" class="tb-btn">CANCEL</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Page viewer (Atlas space) -->
+    <section id="viewer" class="hidden">
+      <div id="viewport">
+        <div id="canvas">
+          <img id="page-img" alt="" draggable="false">
+          <svg id="regions" xmlns="http://www.w3.org/2000/svg"></svg>
+          <svg id="path-overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+      <div id="page-menu" class="hidden"></div>
+      <div id="review-bar" class="hidden">
+        <button id="btn-queue" class="tb-btn">QUEUE</button>
+        <button id="btn-draw" class="tb-btn">+ REGION</button>
+        <button id="btn-addpage" class="tb-btn">+ PAGE</button>
+      </div>
+      <div id="queue-panel" class="hidden"></div>
+      <div id="no-pages" class="hidden">
+        <p>NO PAGES YET</p>
+        <button id="btn-addpage-empty" class="tb-btn">+ ADD FIRST PAGE</button>
+      </div>
+      <form id="addpage-panel" class="hidden">
+        <div class="nd-title">ADD PAGE</div>
+        <input id="ap-file" type="file" accept="image/png,image/jpeg,image/webp">
+        <select id="ap-type">
+          <option value="schematic">SCHEMATIC</option>
+          <option value="pcb">PCB LAYOUT</option>
+          <option value="block">BLOCK DIAGRAM</option>
+          <option value="photo" selected>PHOTO</option>
+          <option value="mod">MOD</option>
+          <option value="text">TEXT</option>
+          <option value="other">OTHER</option>
+        </select>
+        <input id="ap-title" type="text" placeholder="TITLE (OPTIONAL)" maxlength="200" autocomplete="off">
+        <div class="nd-buttons">
+          <button type="submit" class="tb-btn">UPLOAD</button>
+          <button type="button" id="ap-cancel" class="tb-btn">CANCEL</button>
+        </div>
+      </form>
+
+      <div id="path-picker" class="hidden"></div>
+      <div id="path-stepbar" class="hidden">
+        <button id="btn-path-prev" class="tb-btn">&#9668;</button>
+        <div id="path-step-info">
+          <div id="path-step-name">–</div>
+          <div id="path-step-level"></div>
+        </div>
+        <button id="btn-path-next" class="tb-btn">&#9658;</button>
+        <button id="btn-path-exit" class="tb-btn" title="Exit path">&#10005;</button>
+      </div>
+
+      <div id="search-panel" class="hidden">
+        <div class="sp-row">
+          <input id="search-input" type="text" placeholder="FIND DESIGNATOR..." autocomplete="off">
+          <label class="sp-filter"><input type="checkbox" id="search-mods-only"> MODS ONLY</label>
+          <button id="btn-search-close" class="tb-btn">&#10005;</button>
+        </div>
+        <div id="search-results"></div>
+      </div>
+
+      <aside id="infocard" class="hudcard hidden"></aside>
+      <aside id="editcard" class="hudcard hidden"></aside>
+    </section>
+
+    <!-- Mods space: separate, one-way linked from the Atlas -->
+    <section id="mods-space" class="hidden">
+      <div id="mods-timeline"></div>
+      <button id="btn-mod-new" class="tb-btn" title="New mod entry">+ NEW MOD</button>
+      <form id="mod-form" class="hidden">
+        <div class="nd-title" id="mod-form-title">NEW MOD</div>
+        <div id="mod-form-anchor" class="dim"></div>
+        <input id="mf-title" type="text" placeholder="TITLE" maxlength="120" autocomplete="off">
+        <select id="mf-status">
+          <option value="planned">PLANNED</option>
+          <option value="installed">INSTALLED</option>
+          <option value="reverted">REVERTED</option>
+        </select>
+        <input id="mf-date" type="date">
+        <input id="mf-original" type="text" placeholder="ORIGINAL (STOCK)" maxlength="200" autocomplete="off">
+        <input id="mf-installed" type="text" placeholder="INSTALLED" maxlength="200" autocomplete="off">
+        <textarea id="mf-reason" class="ec-textarea" placeholder="REASON" rows="3" maxlength="1000"></textarea>
+        <div class="nd-buttons">
+          <button type="submit" class="tb-btn ec-verify">SAVE</button>
+          <button type="button" id="mf-delete" class="tb-btn ec-delete hidden">DELETE</button>
+          <button type="button" id="mf-cancel" class="tb-btn">CANCEL</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Reference guide: existing standalone HTML, served unmodified -->
+    <section id="reference-view" class="hidden">
+      <iframe id="reference-frame" title="Audio Bench Reference"></iframe>
+    </section>
+  </main>
+
+  <footer id="statusbar">
+    <span id="st-device">–</span>
+    <span class="st-sep">|</span>
+    <span id="st-page">–</span>
+    <span class="st-sep">|</span>
+    <span id="st-zoom">–</span>
+    <span class="st-sep">|</span>
+    <span id="st-path">–</span>
+    <span class="st-sep">|</span>
+    <span id="st-regions">–</span>
+  </footer>
+
+  <div id="crt-overlay"></div>
+  <script src="app.js"></script>
+</body>
+</html>
